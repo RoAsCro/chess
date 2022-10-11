@@ -1,0 +1,96 @@
+class Piece {
+	String type;
+	String colour;
+	
+	Piece(String inType, int inColour) {
+		type = inType;
+		if (inColour == 0) colour = "b";
+		else colour = "w";
+	}
+
+}
+
+
+//Initialise the grid
+String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"}
+String[] orderTwo = {"R", "N", "B", "K", "Q", "B", "N", "R"}
+Piece[][] grid = new Piece[8][8];
+
+for (int j = 0; j < 8; j++) {
+	int col = 0;
+	if (j > 5) col = 1;
+	if (j < 2 || j > 5) {
+		for (int i = 0; i < 8; i++) {
+
+			if (j == 1 || j == 6) {
+				grid[j][i] = new Piece("P", col);
+
+			} else if (j == 0) {
+				grid[j][i] = new Piece(orderOne[i], col);
+
+			} else {
+				grid[j][i] = new Piece(orderTwo[i], col);
+
+			}
+			
+		}
+	}
+}
+
+
+
+void printGrid() {
+	String visualGrid = "";
+	// y is used to  print the y axis labels
+	int y = 8;
+	for (Piece[] p : grid) {
+
+		visualGrid = visualGrid + "\n" + "[" + y + "]";
+		y--;
+
+		for (Piece q : p) {
+
+			visualGrid = visualGrid + "[ ";
+			if (q != null) {
+				visualGrid = visualGrid + q.type + q.colour;
+		
+			} else visualGrid = visualGrid + "  ";
+			visualGrid = visualGrid + " ]";
+		}
+	}
+	//print x axis labels
+	visualGrid = visualGrid + "\n    [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]";
+	System.out.println(visualGrid);
+}
+
+void movePiece(int a, int b, int c, int d) {
+	grid[Math.abs(d-8)][Math.abs(c-1)] = grid[Math.abs(b-8)][Math.abs(a-1)];
+	grid[Math.abs(b-8)][Math.abs(a-1)] = null;
+}
+
+boolean go = true;
+
+
+
+//Cycle while playing
+while (go) {
+	printGrid();
+
+	//Piece selection formatted xy - 11, 14 etc.
+	System.out.print("Select a piece: ");
+	String targetPiece = System.console().readLine();
+	System.out.println();
+	int a = Integer.parseInt(targetPiece.substring(0,1));
+	int b = Integer.parseInt(targetPiece.substring(1,2));
+
+	System.out.print("Select where to move it: ");
+	String targetLocation = System.console().readLine();
+	System.out.println();
+	int c = Integer.parseInt(targetLocation.substring(0,1));
+	int d = Integer.parseInt(targetLocation.substring(1,2));
+	
+	movePiece(a, b, c, d);
+
+}
+
+
