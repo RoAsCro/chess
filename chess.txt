@@ -1,14 +1,50 @@
 class Piece {
-	String type;
-	String colour;
+	//colour is represented by the letter, colourCode is 0 or 1, 0 = black, 1 = white
+	String type, colour;
+	int colourCode;
 	
 	Piece(String inType, int inColour) {
 		type = inType;
+		colourCode = inColour;
 		if (inColour == 0) colour = "b";
 		else colour = "w";
 	}
 
 }
+
+void printGrid() {
+	String visualGrid = "";
+	// y is used to  print the y axis labels
+	int y = 8;
+	for (Piece[] p : grid) {
+
+		visualGrid = visualGrid + "\n" + "[" + y + "]";
+		y--;
+
+		for (Piece q : p) {
+
+			visualGrid = visualGrid + "[ ";
+			if (q != null) {
+				visualGrid = visualGrid + q.type + q.colour;
+		
+			} else visualGrid = visualGrid + "  ";
+			visualGrid = visualGrid + " ]";
+		}
+	}
+	//print x axis labels
+	visualGrid = visualGrid + "\n    [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]";
+	System.out.println(visualGrid);
+}
+
+void movePiece(int a, int b, int c, int d) {
+	grid[Math.abs(d-8)][Math.abs(c-1)] = grid[Math.abs(b)][Math.abs(a)];
+	grid[Math.abs(b)][Math.abs(a)] = null;
+}
+
+
+//Starting variables
+boolean go = true;
+int currentPlayer = 0;
 
 
 //Initialise the grid
@@ -39,50 +75,33 @@ for (int j = 0; j < 8; j++) {
 
 
 
-void printGrid() {
-	String visualGrid = "";
-	// y is used to  print the y axis labels
-	int y = 8;
-	for (Piece[] p : grid) {
 
-		visualGrid = visualGrid + "\n" + "[" + y + "]";
-		y--;
 
-		for (Piece q : p) {
-
-			visualGrid = visualGrid + "[ ";
-			if (q != null) {
-				visualGrid = visualGrid + q.type + q.colour;
-		
-			} else visualGrid = visualGrid + "  ";
-			visualGrid = visualGrid + " ]";
-		}
-	}
-	//print x axis labels
-	visualGrid = visualGrid + "\n    [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]";
-	System.out.println(visualGrid);
-}
-
-void movePiece(int a, int b, int c, int d) {
-	grid[Math.abs(d-8)][Math.abs(c-1)] = grid[Math.abs(b-8)][Math.abs(a-1)];
-	grid[Math.abs(b-8)][Math.abs(a-1)] = null;
-}
-
-boolean go = true;
 
 
 
 //Cycle while playing
 while (go) {
 	printGrid();
+	currentPlayer = Math.abs(currentPlayer - 1);
+	int a = 0, b = 0;
 
 	//Piece selection formatted xy - 11, 14 etc.
-	System.out.print("Select a piece: ");
-	String targetPiece = System.console().readLine();
-	System.out.println();
-	int a = Integer.parseInt(targetPiece.substring(0,1));
-	int b = Integer.parseInt(targetPiece.substring(1,2));
+	boolean selectPiece = true;
+	while (selectPiece) {
+		System.out.print("Select a piece: ");
+		String targetPiece = System.console().readLine();
+		System.out.println();
+	
+		a = Math.abs(Integer.parseInt(targetPiece.substring(0,1)) - 1);
+		b = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
+		System.out.println(b + "" + a);
 
+		//Check valid piece
+		if (grid[b][a] == null || grid[b][a].colourCode != currentPlayer) {
+			System.out.println("Sorry, that's not a valid piece.");
+		} else selectPiece = false;
+	}
 	System.out.print("Select where to move it: ");
 	String targetLocation = System.console().readLine();
 	System.out.println();
