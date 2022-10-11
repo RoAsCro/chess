@@ -1,3 +1,3 @@
 # chess
-chess in java\n
+chess in java
 under construction...
