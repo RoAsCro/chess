@@ -2,7 +2,7 @@ class Piece {
 	//colour is represented by the letter, colourCode is 0 or 1, 0 = black, 1 = white
 	String type, colour;
 	int colourCode;
-	
+
 	Piece(String inType, int inColour) {
 		type = inType;
 		colourCode = inColour;
@@ -26,7 +26,7 @@ void printGrid() {
 			visualGrid = visualGrid + "[ ";
 			if (q != null) {
 				visualGrid = visualGrid + q.type + q.colour;
-		
+
 			} else visualGrid = visualGrid + "  ";
 			visualGrid = visualGrid + " ]";
 		}
@@ -35,10 +35,75 @@ void printGrid() {
 	visualGrid = visualGrid + "\n    [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]";
 	System.out.println(visualGrid);
 }
+//needs both difference x and y
+boolean collision (int yIncrement, int xIncrement, int difference, int targetX, int targetY, Piece selectedPiece) {
+	System.out.println("collision");
+	int j = 0;
+	for (int i = 0; i != difference && j != difference;) {
+		System.out.println("i: " + i + " difference: " + difference + " j: " + j);
+		System.out.println(targetY + i);
+		System.out.println(targetX + j);
+		if (!(grid[targetY + i][targetX + j] == null || (i == 0 && grid[targetY + i][targetX + j] != null && grid[targetY + i][targetX + j].colour != selectedPiece.colour))) {
+			return false;
+		}
+		if (difference < 0) {
+			i -= yIncrement;
+			j -= xIncrement;
+		}
+		else {
+			i += yIncrement;
+			j += yIncrement;
+		}
+	}
+	return true;
+}
 
-void movePiece(int a, int b, int c, int d) {
-	grid[Math.abs(d-8)][Math.abs(c-1)] = grid[Math.abs(b)][Math.abs(a)];
-	grid[Math.abs(b)][Math.abs(a)] = null;
+boolean movePiece(int startX, int startY, int targetX, int targetY) {
+	System.out.println("movePiece");
+	Piece selectedPiece = grid[startY][startX];
+	Piece targetLocation = grid[targetY][targetX];
+	//Check if piece in the way
+	if (!selectedPiece.type.equals("N")) {
+		int xDifference = startX - targetX;
+		int yDifference = startY - targetY;
+		//Generalise the below to a function
+		if (startX != targetX && startY != targetY) {
+			if (!collision(1, 1, xDifference, targetX, targetY, selectedPiece)) return false;
+			/*for (int i = 0; i != xDifference;) {
+				if (!(grid[targetY + i][targetX + i] == null || (i == 0 && grid[targetY + i][targetX + i] != null && grid[targetY + i][targetX + i].colour != selectedPiece.colour))) {
+					return false;
+				}
+				if (xDifference < 0) i--;
+				else i++;
+			}*/
+		} else if (startX != targetX) {
+			if (!collision(0, 1, xDifference, targetX, targetY, selectedPiece)) return false;
+			/*for (int i = 0; i != xDifference;) {
+				if (!(grid[startY][targetX + i] == null || (i == 0 && grid[startY][targetX + i] != null && grid[startY][targetX + i].colour != selectedPiece.colour))) {
+					return false;
+				}
+				if (xDifference < 0) i--;
+				else i++;
+			}*/
+
+		} else if (startY != targetY) {
+			System.out.println("Y");
+			System.out.println(yDifference);
+			System.out.println("" + 1 + 0 + yDifference + targetX + targetY);
+			if (!collision(1, 0, yDifference, targetX, targetY, selectedPiece)) return false;
+			/*for (int i = 0; i != yDifference;) {
+				if (!(grid[targetY + i][startX] == null || (i == 0 && grid[targetY + i][startX] != null && grid[targetY + i][startX].colour != selectedPiece.colour))) {
+					return false;
+				}
+				if (yDifference < 0) i--;
+				else i++;
+			}*/
+		}
+	}
+
+	grid[targetY][targetX] = selectedPiece;
+	grid[startY][startX] = null;
+	return true;
 }
 
 
@@ -68,11 +133,10 @@ for (int j = 0; j < 8; j++) {
 				grid[j][i] = new Piece(orderTwo[i], col);
 
 			}
-			
+
 		}
 	}
 }
-
 
 
 
@@ -84,7 +148,7 @@ for (int j = 0; j < 8; j++) {
 while (go) {
 	printGrid();
 	currentPlayer = Math.abs(currentPlayer - 1);
-	int a = 0, b = 0;
+	int startX = 0, startY = 0, targetX = 0, targetY = 0;
 
 	//Piece selection formatted xy - 11, 14 etc.
 	boolean selectPiece = true;
@@ -92,24 +156,25 @@ while (go) {
 		System.out.print("Select a piece: ");
 		String targetPiece = System.console().readLine();
 		System.out.println();
-	
-		a = Math.abs(Integer.parseInt(targetPiece.substring(0,1)) - 1);
-		b = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
-		System.out.println(b + "" + a);
+
+		startX = Math.abs(Integer.parseInt(targetPiece.substring(0,1)) - 1);
+		startY = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
 
 		//Check valid piece
-		if (grid[b][a] == null || grid[b][a].colourCode != currentPlayer) {
+		if (grid[startY][startX] == null || grid[startY][startX].colourCode != currentPlayer) {
 			System.out.println("Sorry, that's not a valid piece.");
 		} else selectPiece = false;
 	}
-	System.out.print("Select where to move it: ");
-	String targetLocation = System.console().readLine();
-	System.out.println();
-	int c = Integer.parseInt(targetLocation.substring(0,1));
-	int d = Integer.parseInt(targetLocation.substring(1,2));
-	
-	movePiece(a, b, c, d);
+	boolean selectTarget = true;
+	while (selectTarget) {
+		System.out.print("Select where to move it: ");
+		String targetLocation = System.console().readLine();
+		System.out.println();
+		targetX = Math.abs(Integer.parseInt(targetLocation.substring(0,1)) - 1);
+		targetY = Math.abs(Integer.parseInt(targetLocation.substring(1,2)) - 8);
+		if (movePiece(startX, startY, targetX, targetY)) selectTarget = false;
+		else System.out.println("Sorry, that's not a valid move.");
+	}
+
 
 }
-
-
