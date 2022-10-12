@@ -35,78 +35,97 @@ void printGrid() {
 	visualGrid = visualGrid + "\n    [1]   [2]   [3]   [4]   [5]   [6]   [7]   [8]";
 	System.out.println(visualGrid);
 }
-//needs both difference x and y
+
 boolean collision (int yIncrement, int xIncrement, int difference, int targetX, int targetY, Piece selectedPiece) {
 	int j = 0;
-	
-	//System.out.print
+
 	for (int i = 0; i != difference && j != difference;) {
-		//System.out.println(targetY + i);
-		//System.out.println(targetX + j);
+
 		if (!(grid[targetY + i][targetX + j] == null || (i == 0 && grid[targetY + i][targetX + j] != null && grid[targetY + i][targetX + j].colour != selectedPiece.colour))) {
 			return false;
 		}
-		/*if (difference < 0) {
-			i -= yIncrement;
-			j -= xIncrement;
-		}
-		else {*/
-			i += yIncrement;
-			j += xIncrement;
-		//}
+
+		i += yIncrement;
+		j += xIncrement;
+
 	}
 	return true;
 }
 
+
 boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	Piece selectedPiece = grid[startY][startX];
 	Piece targetLocation = grid[targetY][targetX];
+	
+	//Check if inCheck	
+	
+
+
 	//Check if piece in the way
 	if (!selectedPiece.type.equals("N")) {
 		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
 		if (xDifference < 0) xIncrement = -1;
 		if (yDifference < 0) yIncrement = -1;
-		//Generalise the below to a function
+
 		if (startX != targetX && startY != targetY) {
 			if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) return false;
-			/*for (int i = 0; i != xDifference;) {
-				if (!(grid[targetY + i][targetX + i] == null || (i == 0 && grid[targetY + i][targetX + i] != null && grid[targetY + i][targetX + i].colour != selectedPiece.colour))) {
-					return false;
-				}
-				if (xDifference < 0) i--;
-				else i++;
-			}*/
+
 		} else if (startX != targetX) {
 			if (!collision(0, xIncrement, xDifference, targetX, targetY, selectedPiece)) return false;
-			/*for (int i = 0; i != xDifference;) {
-				if (!(grid[startY][targetX + i] == null || (i == 0 && grid[startY][targetX + i] != null && grid[startY][targetX + i].colour != selectedPiece.colour))) {
-					return false;
-				}
-				if (xDifference < 0) i--;
-				else i++;
-			}*/
+
 
 		} else if (startY != targetY) {
 			if (!collision(yIncrement, 0, yDifference, targetX, targetY, selectedPiece)) return false;
-			/*for (int i = 0; i != yDifference;) {
-				if (!(grid[targetY + i][startX] == null || (i == 0 && grid[targetY + i][startX] != null && grid[targetY + i][startX].colour != selectedPiece.colour))) {
-					return false;
-				}
-				if (yDifference < 0) i--;
-				else i++;
-			}*/
+
 		}
 	}
-
+	//Checks passed!
+	if (selectedPiece.type.equals("K")) {
+		if (selectedPiece.colourCode == 0) {
+			kingLocationBX = targetX;
+			kingLocationBY = targetY;
+		} else {
+			kingLocationWX = targetX;
+			kingLocationWY = targetY;
+		}
+	}
+	//System.out.println("Black King: " + kingLocationBX + "," + kingLocationBY);
+	//System.out.println("White King: " + kingLocationWX + "," + kingLocationWY);
 	grid[targetY][targetX] = selectedPiece;
 	grid[startY][startX] = null;
 	return true;
 }
 
 
+void checkCheck() {
+	int startX, startY;
+	if (currentPlayer == 0) {
+		startX = kingLocationBX;
+		startY = kingLocationBY;
+	} else {
+		startX = kingLocationWX;
+		startY = kingLocationWY;
+	}
+
+
+	
+}
+
+//Used to check all possible moves to check the collision function is working properly
 void testMove(int startX, int startY) {
-	System.out.println("movePiece");
+
 	Piece selectedPiece = grid[startY][startX];
+	//Test the Y axis
+	// I shouldn't need to repeat the for loop
+	/* int k = 1;
+	for (int j = 0; j < 2; j++; k-- j++) {
+		for (int i = 7; i > -8; i--) {
+			if (startX + i*j < 8 && startX + i*j > -1 && startY + i*k < 8 && startY + i*k > -1) {
+					int targetY = startY + i*k, targetX = startX + i*j;
+			}
+		}
+	}
+	*/
 	for (int i = 7; i > -8; i--) {
 	if (startY + i < 8 && startY + i > -1) {
 
@@ -117,18 +136,14 @@ void testMove(int startX, int startY) {
 		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
 		if (xDifference < 0) xIncrement = -1;
 		if (yDifference < 0) yIncrement = -1;
-
-		/*if (startX != targetX && startY != targetY) {
-			if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
-
-		} else*/ if (startY != targetY) {
+		if (startY != targetY) {
 			if (!collision(yIncrement, 0, yDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
 
 		}
 	}
 	}
 	}
-
+	//Test the X axis
 	for (int i = 7; i > -8; i--) {
 	if (startX + i < 8 && startX + i > -1) {
 
@@ -147,7 +162,7 @@ void testMove(int startX, int startY) {
 	}
 	}
 	}
-
+	// Test x = y
 	for (int i = 7; i > -8; i--) {
 	if (startX + i < 8 && startX + i > -1 && startY + i < 8 && startY + i > -1) {
 
@@ -166,7 +181,7 @@ void testMove(int startX, int startY) {
 		
 	}
 	}
-
+	// Test x = -y
 	if (startX + i < 8 && startX + i > -1 && startY - i < 8 && startY - i > -1) {
 
 
@@ -193,10 +208,9 @@ void testMove(int startX, int startY) {
 boolean go = true;
 int currentPlayer = 0;
 
-
 //Initialise the grid
-String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"}
-String[] orderTwo = {"R", "N", "B", "K", "Q", "B", "N", "R"}
+String[] orderOne = {"R", "N", "B", "K", "Q", "B", "N", "R"}
+String[] orderTwo = {"R", "N", "B", "Q", "K", "B", "N", "R"}
 Piece[][] grid = new Piece[8][8];
 
 for (int j = 0; j < 8; j++) {
@@ -220,7 +234,8 @@ for (int j = 0; j < 8; j++) {
 	}
 }
 
-
+//Set king location
+int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4;
 
 
 
