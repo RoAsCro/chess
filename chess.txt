@@ -117,15 +117,41 @@ void testMove(int startX, int startY) {
 	Piece selectedPiece = grid[startY][startX];
 	//Test the Y axis
 	// I shouldn't need to repeat the for loop
-	/* int k = 1;
-	for (int j = 0; j < 2; j++; k-- j++) {
+	
+	//While the testHorizontal/Vertical variables equal 1, that will be tested.
+	int testVertical = 0, testHorizontal = -1;
+	boolean testing = true;
+	for (; testing == true; testVertical++, testHorizontal++) {
+		System.out.println("TV: " + testVertical);
+		if (testVertical > 2) {
+			System.out.println("WTF");
+			testing = false;
+			testVertical = -3;
+			testHorizontal = 1;
+		}
 		for (int i = 7; i > -8; i--) {
-			if (startX + i*j < 8 && startX + i*j > -1 && startY + i*k < 8 && startY + i*k > -1) {
-					int targetY = startY + i*k, targetX = startX + i*j;
+			int targetY = startY + (i * ((testVertical + 1) / 2)), targetX = startX + (i * ((Math.abs(testHorizontal) + 1) / 2));
+			//System.out.println((testVertical + 1) / 2);
+			//System.out.println((Math.abs(testHorizontal) + 1) / 2);
+			//Test that the target location is on the grid
+			
+			if (targetX < 8 && targetX > -1 && targetY < 8 && targetY > -1) {
+				//System.out.print("Test");
+				int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
+				if (xDifference < 0) xIncrement = -1;
+				if (yDifference < 0) yIncrement = -1;
+				if (startX != targetX && startY != targetY) {
+					if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
+				}else if (startY != targetY) {
+					if (!collision(yIncrement, 0, yDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
+				} else 	if (startX != targetX) {
+					if (!collision(0, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
+
+				}
 			}
 		}
 	}
-	*/
+	/*
 	for (int i = 7; i > -8; i--) {
 	if (startY + i < 8 && startY + i > -1) {
 
@@ -200,7 +226,7 @@ void testMove(int startX, int startY) {
 	}
 	}
 
-	}
+	}*/
 }
 
 
