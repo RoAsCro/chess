@@ -57,9 +57,9 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	Piece selectedPiece = grid[startY][startX];
 	Piece targetLocation = grid[targetY][targetX];
 	
-	//Check if inCheck	
+	//Check if in Check	
 	
-
+	//if (checkCheck()) return false;
 
 	//Check if piece in the way
 	if (!selectedPiece.type.equals("N")) {
@@ -80,6 +80,29 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		}
 	}
 	//Checks passed!
+	changeCoordinates(startX, startY, targetX, targetY);
+	/*if (selectedPiece.type.equals("K")) {
+		if (selectedPiece.colourCode == 0) {
+			kingLocationBX = targetX;
+			kingLocationBY = targetY;
+		} else {
+			kingLocationWX = targetX;
+			kingLocationWY = targetY;
+		}
+	}
+
+	grid[targetY][targetX] = selectedPiece;
+	grid[startY][startX] = null;*/
+	if (checkCheck()) {
+		changeCoordinates(targetX, targetY, startX, startY);
+		return false;
+	}
+	return true;
+}
+
+void changeCoordinates(int startX, int startY, int targetX, int targetY) {
+	Piece selectedPiece = grid[startY][startX];
+	
 	if (selectedPiece.type.equals("K")) {
 		if (selectedPiece.colourCode == 0) {
 			kingLocationBX = targetX;
@@ -92,12 +115,11 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 
 	grid[targetY][targetX] = selectedPiece;
 	grid[startY][startX] = null;
-	return true;
 }
 
 
-void checkCheck() {
-	boolean checking = true, inCheck = false;
+boolean checkCheck() {
+	boolean checking = true;
 	int startX, startY;
 	if (currentPlayer == 0) {
 		startX = kingLocationBX;
@@ -109,39 +131,67 @@ void checkCheck() {
 	int testVertical = 0, testHorizontal = 1;
 		
 	for (int j = 0; checking; j++){
-
-		String threatType = "";
+		//System.out.println("j = " + j);
 		for (int i = 1; ; i++) {
-			System.out.println(i);
 			int targetY = startY + i * testVertical, targetX = startX + (i * testHorizontal);
-			System.out.println("A" + targetX + "," + targetY);
+			if (j == 8) {
+				switch(i) {
+					case 1:
+						targetX = startX + 1;
+						targetY = startY + 2;
+						break;
+					case 2:
+						targetX = startX + 1;
+						targetY = startY - 2;
+						break;
+					case 3:
+						targetX = startX - 1;
+						targetY = startY - 2;
+						break;
+					case 4:
+						targetX = startX - 1;
+						targetY = startY + 2;
+						break;
+					case 5:
+						targetX = startX - 2;
+						targetY = startY - 1;
+						break;
+					case 6:
+						targetX = startX - 2;
+						targetY = startY + 1;
+						break;
+					case 7:
+						targetX = startX + 2;
+						targetY = startY + 1;
+						break;
+					case 8:
+						targetX = startX + 2;
+						targetY = startY - 1;
+						break;
+				}
+			}
+			//System.out.println("A" + targetX + "," + targetY);
+			//System.out.println(i);
+			//System.out.println(targetX + "," + targetY);
 			if (targetY > -1 && targetY < 8 && targetX > -1 && targetX < 8) {
 				if (grid[targetY][targetX] != null) {
-					System.out.println(targetX + "," + targetY);
-					if (grid[targetY][targetX].colourCode != currentPlayer) {
-						threatType = grid[targetY][targetX].type;
-					}
-					break;
 					
+					if (grid[targetY][targetX].colourCode != currentPlayer) {
+						if ((threatCheck(grid[targetY][targetX].type, targetY, j, startY))) return true;
+					}
+					if (j != 8) break;
 				}
-			} else break;
+			} else if (j != 8) {
+				break;
+			}
+			if (j == 8 && i == 8) break;
+			
 		}
-		System.out.println(threatType);
-		if (threatType.equals("R")) System.out.println("See");
 		switch(j) {
 			case 0:
-				if (threatType.equals("R")/* || threatType.equals("K") || threatType.equals("Q")*/) {
-					System.out.println("See");
-					/*checking = false;
-					inCheck = True;*/
-				}
 				testHorizontal = -1;
 				break;
 			case 1:
-				/*if (threatType.equals("R") || threatType.equals("K") || threatType.equals("Q")) {
-					checking = false;
-					inCheck = True;
-				}*/
 				testHorizontal = 0;
 				testVertical = 1;
 				break;
@@ -165,11 +215,31 @@ void checkCheck() {
 				testHorizontal = 1;
 				break;
 			case 7:
+				break;
+			case 8:
 				checking = false;
 				break;
 		}
 	}
+	System.out.print("checkCheck false");
+	return false;
+}
+
+boolean threatCheck(String threatType, int threatY, int threatAngle, int kingY) {
 	
+	if ((threatAngle <= 3) && (threatType.equals("R") || threatType.equals("K") || threatType.equals("Q"))) {
+		return true;
+	} else if ((threatAngle <= 7) && (threatType.equals("B") || threatType.equals("K") || threatType.equals("Q") || threatType.equals("P"))) {
+		if (threatType.equals("P")) {
+			if ((currentPlayer == 0 && kingY - threatY == -1) || (currentPlayer == 1 && kingY - threatY == 1)) {
+				return true;
+			}
+		} else return true;
+	} else if (threatAngle == 8 && threatType.equals("N")) {
+		return true;
+	}
+	System.out.print("threatCheck false");
+	return false;	
 }
 
 //Used to check all possible moves to check the collision function is working properly
@@ -246,15 +316,15 @@ for (int j = 0; j < 8; j++) {
 int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4;
 
 
-
-checkCheck();
+//checkCheck();
 
 //Cycle while playing
 while (go) {
 	printGrid();
+	System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 	currentPlayer = Math.abs(currentPlayer - 1);
 	int startX = 0, startY = 0, targetX = 0, targetY = 0;
-
+	System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 	//Piece selection formatted xy - 11, 14 etc.
 	boolean selectPiece = true;
 	while (selectPiece) {
@@ -284,6 +354,4 @@ while (go) {
 		if (movePiece(startX, startY, targetX, targetY)) selectTarget = false;
 		else System.out.println("Sorry, that's not a valid move.");
 	}
-
-
 }
