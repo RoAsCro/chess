@@ -89,8 +89,7 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 			kingLocationWY = targetY;
 		}
 	}
-	//System.out.println("Black King: " + kingLocationBX + "," + kingLocationBY);
-	//System.out.println("White King: " + kingLocationWX + "," + kingLocationWY);
+
 	grid[targetY][targetX] = selectedPiece;
 	grid[startY][startX] = null;
 	return true;
@@ -98,6 +97,7 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 
 
 void checkCheck() {
+	boolean checking = true, inCheck = false;
 	int startX, startY;
 	if (currentPlayer == 0) {
 		startX = kingLocationBX;
@@ -106,8 +106,69 @@ void checkCheck() {
 		startX = kingLocationWX;
 		startY = kingLocationWY;
 	}
+	int testVertical = 0, testHorizontal = 1;
+		
+	for (int j = 0; checking; j++){
 
-
+		String threatType = "";
+		for (int i = 1; ; i++) {
+			System.out.println(i);
+			int targetY = startY + i * testVertical, targetX = startX + (i * testHorizontal);
+			System.out.println("A" + targetX + "," + targetY);
+			if (targetY > -1 && targetY < 8 && targetX > -1 && targetX < 8) {
+				if (grid[targetY][targetX] != null) {
+					System.out.println(targetX + "," + targetY);
+					if (grid[targetY][targetX].colourCode != currentPlayer) {
+						threatType = grid[targetY][targetX].type;
+					}
+					break;
+					
+				}
+			} else break;
+		}
+		System.out.println(threatType);
+		if (threatType.equals("R")) System.out.println("See");
+		switch(j) {
+			case 0:
+				if (threatType.equals("R")/* || threatType.equals("K") || threatType.equals("Q")*/) {
+					System.out.println("See");
+					/*checking = false;
+					inCheck = True;*/
+				}
+				testHorizontal = -1;
+				break;
+			case 1:
+				/*if (threatType.equals("R") || threatType.equals("K") || threatType.equals("Q")) {
+					checking = false;
+					inCheck = True;
+				}*/
+				testHorizontal = 0;
+				testVertical = 1;
+				break;
+			case 2:
+				testVertical = -1;
+				break;
+			case 3:
+				testVertical = 1;
+				testHorizontal = 1;
+				break;
+			case 4:
+				testVertical = -1;
+				testHorizontal = -1;
+				break;
+			case 5:
+				testVertical = 1;
+				testHorizontal = -1;
+				break;
+			case 6:
+				testVertical = -1;
+				testHorizontal = 1;
+				break;
+			case 7:
+				checking = false;
+				break;
+		}
+	}
 	
 }
 
@@ -122,17 +183,14 @@ void testMove(int startX, int startY) {
 	int testVertical = 0, testHorizontal = -1;
 	boolean testing = true;
 	for (; testing == true; testVertical++, testHorizontal++) {
-		System.out.println("TV: " + testVertical);
 		if (testVertical > 2) {
-			System.out.println("WTF");
 			testing = false;
 			testVertical = -3;
 			testHorizontal = 1;
 		}
 		for (int i = 7; i > -8; i--) {
 			int targetY = startY + (i * ((testVertical + 1) / 2)), targetX = startX + (i * ((Math.abs(testHorizontal) + 1) / 2));
-			//System.out.println((testVertical + 1) / 2);
-			//System.out.println((Math.abs(testHorizontal) + 1) / 2);
+
 			//Test that the target location is on the grid
 			
 			if (targetX < 8 && targetX > -1 && targetY < 8 && targetY > -1) {
@@ -144,89 +202,13 @@ void testMove(int startX, int startY) {
 					if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
 				}else if (startY != targetY) {
 					if (!collision(yIncrement, 0, yDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
-				} else 	if (startX != targetX) {
+				}else if (startX != targetX) {
 					if (!collision(0, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
 
 				}
 			}
 		}
 	}
-	/*
-	for (int i = 7; i > -8; i--) {
-	if (startY + i < 8 && startY + i > -1) {
-
-	int targetY = startY + i, targetX = startX;
-	Piece targetLocation = grid[targetY][targetX];
-
-	if (!selectedPiece.type.equals("N")) {
-		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
-		if (xDifference < 0) xIncrement = -1;
-		if (yDifference < 0) yIncrement = -1;
-		if (startY != targetY) {
-			if (!collision(yIncrement, 0, yDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
-
-		}
-	}
-	}
-	}
-	//Test the X axis
-	for (int i = 7; i > -8; i--) {
-	if (startX + i < 8 && startX + i > -1) {
-
-
-	int targetY = startY, targetX = startX + i;
-	Piece targetLocation = grid[targetY][targetX];
-
-	if (!selectedPiece.type.equals("N")) {
-		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
-		if (xDifference < 0) xIncrement = -1;
-		if (yDifference < 0) yIncrement = -1;
-		if (startX != targetX) {
-			if (!collision(0, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
-
-		}
-	}
-	}
-	}
-	// Test x = y
-	for (int i = 7; i > -8; i--) {
-	if (startX + i < 8 && startX + i > -1 && startY + i < 8 && startY + i > -1) {
-
-
-	int targetY = startY + i, targetX = startX + i;
-	Piece targetLocation = grid[targetY][targetX];
-
-	if (!selectedPiece.type.equals("N")) {
-		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
-		if (xDifference < 0) xIncrement = -1;
-		if (yDifference < 0) yIncrement = -1;
-		if (startX != targetX && startY != targetY) {
-			if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
-
-		}
-		
-	}
-	}
-	// Test x = -y
-	if (startX + i < 8 && startX + i > -1 && startY - i < 8 && startY - i > -1) {
-
-
-	int targetY = startY - i, targetX = startX + i;
-	Piece targetLocation = grid[targetY][targetX];
-
-	if (!selectedPiece.type.equals("N")) {
-		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
-		if (xDifference < 0) xIncrement = -1;
-		if (yDifference < 0) yIncrement = -1;
-		if (startX != targetX && startY != targetY) {
-			if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) System.out.println((Math.abs(targetX + 1)) + "," + (Math.abs(8 - targetY)) + " is not a valid move.");
-
-		}
-		
-	}
-	}
-
-	}*/
 }
 
 
@@ -265,7 +247,7 @@ int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX =
 
 
 
-
+checkCheck();
 
 //Cycle while playing
 while (go) {
