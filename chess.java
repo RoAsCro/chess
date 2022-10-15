@@ -66,7 +66,7 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	if (angle == 0) return false;
 	
 	//Check the piece moves like that
-	if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation)) return false;
+	if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation, startY)) return false;
 	
 	//Check if piece in the way
 	if (!selectedPiece.type.equals("N")) {
@@ -124,10 +124,10 @@ void changeCoordinates(int startX, int startY, int targetX, int targetY) {
 
 
 //Check the piece moves like that
-boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle, Piece targetLocation) {
-	System.out.println(xDifference);
-	System.out.println(yDifference);
-	System.out.println(Math.abs(yDifference) + Math.abs(xDifference));
+boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle, Piece targetLocation, int startY) {
+	//System.out.println(xDifference);
+	//System.out.println(yDifference);
+	//System.out.println(Math.abs(yDifference) + Math.abs(xDifference));
 	int addedDifference = Math.abs(yDifference) + Math.abs(xDifference);
 	// angle 3 is diagonal
 	if (angle == 3) {
@@ -141,7 +141,8 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 		else if (!(pieceType.equals("B") || pieceType.equals("Q"))) return false;
 		
 	} else if (angle < 3) {
-		if (pieceType.equals("P") && pawnCheck(yDifference)) return true;
+
+		if (pieceType.equals("P") && (pawnCheck(yDifference) || (currentPlayer == 0 && startY == 1 && yDifference == -2) || (currentPlayer == 1 && startY == 6 && yDifference == 2))) return true;
 		
 		else if (pieceType.equals("K") && addedDifference == 1) return true;
 		
