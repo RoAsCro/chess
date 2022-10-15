@@ -55,44 +55,45 @@ boolean collision (int yIncrement, int xIncrement, int difference, int targetX, 
 
 boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	Piece selectedPiece = grid[startY][startX];
+	String pieceType = selectedPiece.type;
+	int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1, angle = 0;
 	Piece targetLocation = grid[targetY][targetX];
-	
-	//Check if in Check	
-	
-	//if (checkCheck()) return false;
+	boolean isKnight = false;
+	//if (selectedPiece.type.equals("N")) isKnight = true;
+	if (startY != targetY) angle += 1;
+	if (startX != targetX) angle += 2;
 
+	//Piece is not attempting to move where it already is
+	if (angle == 0) return false;
+	
 	//Check if piece in the way
 	if (!selectedPiece.type.equals("N")) {
-		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
+		
 		if (xDifference < 0) xIncrement = -1;
 		if (yDifference < 0) yIncrement = -1;
-
-		if (startX != targetX && startY != targetY) {
+		
+		// if diagonal, else if horizontal, else if vertical
+		switch(angle) {
+		case 3:
+			if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation)) return false;
 			if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) return false;
-
-		} else if (startX != targetX) {
+			break;
+			
+		case 2:
 			if (!collision(0, xIncrement, xDifference, targetX, targetY, selectedPiece)) return false;
+			break;
 
-
-		} else if (startY != targetY) {
+		case 1:
 			if (!collision(yIncrement, 0, yDifference, targetX, targetY, selectedPiece)) return false;
-
+			break;
 		}
+		
 	}
 	//Checks passed!
+	//Move the piece
 	changeCoordinates(startX, startY, targetX, targetY);
-	/*if (selectedPiece.type.equals("K")) {
-		if (selectedPiece.colourCode == 0) {
-			kingLocationBX = targetX;
-			kingLocationBY = targetY;
-		} else {
-			kingLocationWX = targetX;
-			kingLocationWY = targetY;
-		}
-	}
 
-	grid[targetY][targetX] = selectedPiece;
-	grid[startY][startX] = null;*/
+	// If this movement results in check, move the piece back and return false
 	if (checkCheck()) {
 		changeCoordinates(targetX, targetY, startX, startY);
 		return false;
@@ -118,6 +119,28 @@ void changeCoordinates(int startX, int startY, int targetX, int targetY) {
 }
 
 
+//Check the piece moves like that
+boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle, Piece targetLocation) {
+	System.out.println(xDifference);
+	System.out.println(yDifference);
+	// angle 1 = diagonal
+	if (angle == 3) {
+		if (pieceType.equals("K") || pieceType.equals("P")) {
+			if (Math.abs(yDifference) != 1 || (pieceType.equals("P") && (!pawnCheck(yDifference) || targetLocation == null))) return false;			
+		} else if (pieceType.equals("N") && (Math.abs(yDifference) + Math.abs(xDifference) != 3)) return false; 
+		else if (!(pieceType.equals("B") || pieceType.equals("Q"))) return false;
+	}
+	return true;
+}
+
+//If piece is a pawn, check it's moving in the right direction
+boolean pawnCheck(int yDifference) {
+	if ((currentPlayer == 0 && yDifference != -1) || (currentPlayer == 1 && yDifference != 1)) return false;
+	else return true;
+}
+
+
+//Check if in check
 boolean checkCheck() {
 	boolean checking = true;
 	int startX, startY;
@@ -131,7 +154,6 @@ boolean checkCheck() {
 	int testVertical = 0, testHorizontal = 1;
 		
 	for (int j = 0; checking; j++){
-		//System.out.println("j = " + j);
 		for (int i = 1; ; i++) {
 			int targetY = startY + i * testVertical, targetX = startX + (i * testHorizontal);
 			if (j == 8) {
@@ -170,8 +192,6 @@ boolean checkCheck() {
 						break;
 				}
 			}
-			//System.out.println("A" + targetX + "," + targetY);
-			//System.out.println(i);
 			//System.out.println(targetX + "," + targetY);
 			if (targetY > -1 && targetY < 8 && targetX > -1 && targetX < 8) {
 				if (grid[targetY][targetX] != null) {
@@ -221,7 +241,6 @@ boolean checkCheck() {
 				break;
 		}
 	}
-	System.out.print("checkCheck false");
 	return false;
 }
 
@@ -231,6 +250,7 @@ boolean threatCheck(String threatType, int threatY, int threatAngle, int kingY) 
 		return true;
 	} else if ((threatAngle <= 7) && (threatType.equals("B") || threatType.equals("K") || threatType.equals("Q") || threatType.equals("P"))) {
 		if (threatType.equals("P")) {
+			//Can probably use pawnCheck for this
 			if ((currentPlayer == 0 && kingY - threatY == -1) || (currentPlayer == 1 && kingY - threatY == 1)) {
 				return true;
 			}
@@ -238,7 +258,6 @@ boolean threatCheck(String threatType, int threatY, int threatAngle, int kingY) 
 	} else if (threatAngle == 8 && threatType.equals("N")) {
 		return true;
 	}
-	System.out.print("threatCheck false");
 	return false;	
 }
 
@@ -282,7 +301,49 @@ void testMove(int startX, int startY) {
 }
 
 
-//Starting variables
+boolean decideMove() {
+	int startX = 0, startY = 0, targetX = 0, targetY = 0;
+	boolean selectPiece = true;		
+	while (selectPiece) {
+		System.out.print("Select a piece: ");
+		String targetPiece = System.console().readLine();
+		System.out.println();
+
+		startX = Math.abs(Integer.parseInt(targetPiece.substring(0,1)) - 1);
+		startY = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
+
+		//Check valid piece
+		if (grid[startY][startX] == null || grid[startY][startX].colourCode != currentPlayer) {
+			System.out.println("Sorry, that's not a valid piece.");
+		} else selectPiece = false;
+	}
+	boolean selectTarget = true;
+	while (selectTarget) {
+		System.out.print("Select where to move it: ");
+		String targetLocation = System.console().readLine();
+		System.out.println();
+		// TEST will return a list of invalid moves in the horizontal, vertical, and diagonal directions. BACK will return to selec a piece.
+		if (targetLocation.equals("TEST")) {
+			testMove(startX, startY);
+			continue;
+		} else if (targetLocation.equals("BACK")) {
+			return false;
+		}
+		targetX = Math.abs(Integer.parseInt(targetLocation.substring(0,1)) - 1);
+		targetY = Math.abs(Integer.parseInt(targetLocation.substring(1,2)) - 8);
+		
+		//Go through the checks that it's a valid move, and if it is then move the piece and go to the next move. If not, come back here.
+		if (movePiece(startX, startY, targetX, targetY)) selectTarget = false;
+		else System.out.println("Sorry, that's not a valid move.");
+	}
+	return true;
+}
+
+
+
+
+
+////Starting variables
 boolean go = true;
 int currentPlayer = 0;
 
@@ -315,43 +376,18 @@ for (int j = 0; j < 8; j++) {
 //Set king location
 int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4;
 
-
-//checkCheck();
-
-//Cycle while playing
+//Loop while playing
 while (go) {
 	printGrid();
 	System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 	currentPlayer = Math.abs(currentPlayer - 1);
-	int startX = 0, startY = 0, targetX = 0, targetY = 0;
+	//int startX = 0, startY = 0, targetX = 0, targetY = 0;
 	System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 	//Piece selection formatted xy - 11, 14 etc.
-	boolean selectPiece = true;
-	while (selectPiece) {
-		System.out.print("Select a piece: ");
-		String targetPiece = System.console().readLine();
-		System.out.println();
-
-		startX = Math.abs(Integer.parseInt(targetPiece.substring(0,1)) - 1);
-		startY = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
-
-		//Check valid piece
-		if (grid[startY][startX] == null || grid[startY][startX].colourCode != currentPlayer) {
-			System.out.println("Sorry, that's not a valid piece.");
-		} else selectPiece = false;
-	}
-	boolean selectTarget = true;
-	while (selectTarget) {
-		System.out.print("Select where to move it: ");
-		String targetLocation = System.console().readLine();
-		System.out.println();
-		if (targetLocation.equals("TEST")) {
-			testMove(startX, startY);
-			continue;
-		}
-		targetX = Math.abs(Integer.parseInt(targetLocation.substring(0,1)) - 1);
-		targetY = Math.abs(Integer.parseInt(targetLocation.substring(1,2)) - 8);
-		if (movePiece(startX, startY, targetX, targetY)) selectTarget = false;
-		else System.out.println("Sorry, that's not a valid move.");
-	}
+	
+	
+	boolean loopDecision = true;
+	while (loopDecision) {
+		if (decideMove()) loopDecision = false;
+	 }
 }
