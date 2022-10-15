@@ -113,9 +113,26 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		enPassantX = -1;
 		enPassantY = -1;
 	}
+	if (selectedPiece.type.equals("K")) {
+		if (currentPlayer == 0) blackCastleK = false;
+		else whiteCastleK = false;
+	}
+	
+	if (selectedPiece.type.equals("R") ) {
+		int startXY = startX + startY;
+		if (currentPlayer == 0) {
+			if (startXY == 0) blackCastleRookRight = false;
+			if (startXY == 7) blackCastleRookLeft = false;
+		} else {
+			if (startXY == 14) whiteCastleRookRight = false;
+			if (startXY == 7) whiteCastleRookLeft = false;
+		}
+	}
+	
 	System.out.println(enPassantX);
 	System.out.println(enPassantY);
 	enPassantTake = false;
+		
 	return true;
 }
 
@@ -179,7 +196,17 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 			}
 		}
 	
-		else if (pieceType.equals("K") && addedDifference == 1) return true;
+		else if (pieceType.equals("K")) {
+			System.out.println(xDifference);
+			if (addedDifference == 1) return true;
+			else if (currentPlayer == 0) {
+				if (blackCastleK && ((xDifference == 2 && blackCastleRookRight) || (xDifference == -2 && blackCastleRookLeft))) return true;
+				else return false;
+			}else if (currentPlayer == 1) {
+				if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft) || (xDifference == -2 && whiteCastleRookRight))) return true;
+				else return false;
+			}else return false;
+		}
 		
 		else if (!(pieceType.equals("R") || pieceType.equals("Q"))) return false;
 	}
@@ -403,6 +430,7 @@ int currentPlayer = 0;
 //Initialise the grid
 String[] orderOne = {"R", "N", "B", "K", "Q", "B", "N", "R"}
 String[] orderTwo = {"R", "N", "B", "Q", "K", "B", "N", "R"}
+//String[] orderOne = {"R", "N", "N", "N", "K", "N", "N", "R"}
 Piece[][] grid = new Piece[8][8];
 
 for (int j = 0; j < 8; j++) {
@@ -428,7 +456,7 @@ for (int j = 0; j < 8; j++) {
 
 //Set king location
 int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
-boolean enPassantFlag, enPassantTake;
+boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true;
 
 //Loop while playing
 while (go) {
