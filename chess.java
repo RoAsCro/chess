@@ -58,13 +58,15 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	String pieceType = selectedPiece.type;
 	int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1, angle = 0;
 	Piece targetLocation = grid[targetY][targetX];
-	boolean isKnight = false;
-	//if (selectedPiece.type.equals("N")) isKnight = true;
+	
 	if (startY != targetY) angle += 1;
 	if (startX != targetX) angle += 2;
 
 	//Piece is not attempting to move where it already is
 	if (angle == 0) return false;
+	
+	//Check the piece moves like that
+	if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation)) return false;
 	
 	//Check if piece in the way
 	if (!selectedPiece.type.equals("N")) {
@@ -72,10 +74,9 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		if (xDifference < 0) xIncrement = -1;
 		if (yDifference < 0) yIncrement = -1;
 		
-		// if diagonal, else if horizontal, else if vertical
+		// if diagonal (angle = 3), else if horizontal (2), else if vertical (1)
 		switch(angle) {
 		case 3:
-			if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation)) return false;
 			if (!collision(yIncrement, xIncrement, xDifference, targetX, targetY, selectedPiece)) return false;
 			break;
 			
@@ -89,6 +90,9 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		}
 		
 	}
+	
+	
+	
 	//Checks passed!
 	//Move the piece
 	changeCoordinates(startX, startY, targetX, targetY);
@@ -123,12 +127,25 @@ void changeCoordinates(int startX, int startY, int targetX, int targetY) {
 boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle, Piece targetLocation) {
 	System.out.println(xDifference);
 	System.out.println(yDifference);
-	// angle 1 = diagonal
+	System.out.println(Math.abs(yDifference) + Math.abs(xDifference));
+	int addedDifference = Math.abs(yDifference) + Math.abs(xDifference);
+	// angle 3 is diagonal
 	if (angle == 3) {
-		if (pieceType.equals("K") || pieceType.equals("P")) {
-			if (Math.abs(yDifference) != 1 || (pieceType.equals("P") && (!pawnCheck(yDifference) || targetLocation == null))) return false;			
-		} else if (pieceType.equals("N") && (Math.abs(yDifference) + Math.abs(xDifference) != 3)) return false; 
+		if (Math.abs(xDifference) != Math.abs(yDifference) && !pieceType.equals("N")) return false; 
+		
+		else if (pieceType.equals("K") || pieceType.equals("P")) {
+			if (Math.abs(yDifference) != 1 || (pieceType.equals("P") && (!pawnCheck(yDifference) || targetLocation == null))) return false;	
+			
+		} else if (pieceType.equals("N") && addedDifference == 3) return true; 
+		
 		else if (!(pieceType.equals("B") || pieceType.equals("Q"))) return false;
+		
+	} else if (angle < 3) {
+		if (pieceType.equals("P") && pawnCheck(yDifference)) return true;
+		
+		else if (pieceType.equals("K") && addedDifference == 1) return true;
+		
+		else if (!(pieceType.equals("R") || pieceType.equals("Q"))) return false;
 	}
 	return true;
 }
