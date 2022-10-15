@@ -40,7 +40,7 @@ boolean collision (int yIncrement, int xIncrement, int difference, int targetX, 
 	int j = 0;
 
 	for (int i = 0; i != difference && j != difference;) {
-
+		//CHECK IF YOU CAN REMOVE WHAT COMES AFTER THE OR - I think it's supposed to check the target piece is not one of the current player's, which is handled elsewhere now
 		if (!(grid[targetY + i][targetX + j] == null || (i == 0 && grid[targetY + i][targetX + j] != null && grid[targetY + i][targetX + j].colour != selectedPiece.colour))) {
 			return false;
 		}
@@ -64,6 +64,11 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 
 	//Piece is not attempting to move where it already is
 	if (angle == 0) return false;
+	
+	//Target location is not occupied by one of current player's pieces
+	if (targetLocation != null && targetLocation.colourCode == currentPlayer) {
+		return false;
+	}
 	
 	//Check the piece moves like that
 	if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation, startY, startX)) return false;
@@ -200,10 +205,10 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 			System.out.println(xDifference);
 			if (addedDifference == 1) return true;
 			else if (currentPlayer == 0) {
-				if (blackCastleK && ((xDifference == 2 && blackCastleRookRight) || (xDifference == -2 && blackCastleRookLeft))) return true;
+				if (blackCastleK && ((xDifference == 2 && blackCastleRookRight && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && blackCastleRookLeft && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) return true;
 				else return false;
 			}else if (currentPlayer == 1) {
-				if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft) || (xDifference == -2 && whiteCastleRookRight))) return true;
+				if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && whiteCastleRookRight && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) return true;
 				else return false;
 			}else return false;
 		}
@@ -430,7 +435,7 @@ int currentPlayer = 0;
 //Initialise the grid
 String[] orderOne = {"R", "N", "B", "K", "Q", "B", "N", "R"}
 String[] orderTwo = {"R", "N", "B", "Q", "K", "B", "N", "R"}
-//String[] orderOne = {"R", "N", "N", "N", "K", "N", "N", "R"}
+//String[] orderTwo = {"R", "N", "N", "N", "K", "N", "N", "R"}
 Piece[][] grid = new Piece[8][8];
 
 for (int j = 0; j < 8; j++) {
@@ -463,7 +468,6 @@ while (go) {
 	printGrid();
 	System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 	currentPlayer = Math.abs(currentPlayer - 1);
-	//int startX = 0, startY = 0, targetX = 0, targetY = 0;
 	System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 	//Piece selection formatted xy - 11, 14 etc.
 	
