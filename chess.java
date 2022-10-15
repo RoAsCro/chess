@@ -66,7 +66,7 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	if (angle == 0) return false;
 	
 	//Check the piece moves like that
-	if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation, startY)) return false;
+	if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation, startY, startX)) return false;
 	
 	//Check if piece in the way
 	if (!selectedPiece.type.equals("N")) {
@@ -96,12 +96,26 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	//Checks passed!
 	//Move the piece
 	changeCoordinates(startX, startY, targetX, targetY);
-
+	if (enPassantTake) grid[targetY + yDifference][targetX] = null;
 	// If this movement results in check, move the piece back and return false
 	if (checkCheck()) {
 		changeCoordinates(targetX, targetY, startX, startY);
+		//if an en passant took place, remove the pawn
 		return false;
 	}
+	//BELOW MUST ONLY TAKE PLACE IF A MOVE IS SUCCESSFULLY MADE
+	//Allow for en passant next move
+	if (enPassantFlag) {
+		enPassantX = targetX;
+		enPassantY = targetY + (yDifference / 2);
+		enPassantFlag = false;
+	} else {
+		enPassantX = -1;
+		enPassantY = -1;
+	}
+	System.out.println(enPassantX);
+	System.out.println(enPassantY);
+	enPassantTake = false;
 	return true;
 }
 
@@ -124,26 +138,47 @@ void changeCoordinates(int startX, int startY, int targetX, int targetY) {
 
 
 //Check the piece moves like that
-boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle, Piece targetLocation, int startY) {
+boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle, Piece targetLocation, int startY, int startX) {
 	//System.out.println(xDifference);
 	//System.out.println(yDifference);
 	//System.out.println(Math.abs(yDifference) + Math.abs(xDifference));
 	int addedDifference = Math.abs(yDifference) + Math.abs(xDifference);
-	// angle 3 is diagonal
+	// angle 3 is diagonal, < 3 is straight
 	if (angle == 3) {
 		if (Math.abs(xDifference) != Math.abs(yDifference) && !pieceType.equals("N")) return false; 
 		
-		else if (pieceType.equals("K") || pieceType.equals("P")) {
-			if (Math.abs(yDifference) != 1 || (pieceType.equals("P") && (!pawnCheck(yDifference) || targetLocation == null))) return false;	
+		else if (pieceType.equals("K") && Math.abs(yDifference) == 1) return true;
+		else if (pieceType.equals("P") && pawnCheck(yDifference)) {
+			System.out.println("X = " + enPassantX);
+			//System.out.println(grid[enPassantY][enPassantX]);
+			if (targetLocation != null) return true;
+			else if (enPassantX != -1 && startX - xDifference == enPassantX && startY - yDifference == enPassantY) {
+				//KILL PAWN CODE
+				//Location of killed pawn = targetY + yDifference
+				enPassantTake = true;
+				return true;
+			}
+			else return false;
 			
 		} else if (pieceType.equals("N") && addedDifference == 3) return true; 
 		
-		else if (!(pieceType.equals("B") || pieceType.equals("Q"))) return false;
+		else if (!(pieceType.equals("B") || pieceType.equals("Q"))) {
+			return false;
+		}
 		
 	} else if (angle < 3) {
 
-		if (pieceType.equals("P") && (pawnCheck(yDifference) || (currentPlayer == 0 && startY == 1 && yDifference == -2) || (currentPlayer == 1 && startY == 6 && yDifference == 2))) return true;
-		
+		if (pieceType.equals("P")) {
+			if (pawnCheck(yDifference)) return true; 
+			else if ((currentPlayer == 0 && startY == 1 && yDifference == -2) || (currentPlayer == 1 && startY == 6 && yDifference == 2)) {
+				enPassantFlag = true;
+				return true;
+				
+			} else {
+				return false;
+			}
+		}
+	
 		else if (pieceType.equals("K") && addedDifference == 1) return true;
 		
 		else if (!(pieceType.equals("R") || pieceType.equals("Q"))) return false;
@@ -392,7 +427,8 @@ for (int j = 0; j < 8; j++) {
 }
 
 //Set king location
-int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4;
+int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
+boolean enPassantFlag, enPassantTake;
 
 //Loop while playing
 while (go) {
