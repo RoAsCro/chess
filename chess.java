@@ -134,6 +134,27 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		}
 	}
 	
+	if (castleFlag) {
+		if (currentPlayer == 0) {
+			if (targetX == 2) {
+				grid[0][3] = grid[0][0];
+				grid[0][0] = null;
+			} else if (targetX == 6) {
+				grid[0][5] = grid[0][7];
+				grid[0][7] = null;
+			}
+		} else {
+			if (targetX == 2) {
+				grid[7][3] = grid[7][0];
+				grid[7][0] = null;
+			} else if (targetX == 6) {
+				grid[7][5] = grid[7][7];
+				grid[7][7] = null;
+			}
+		}
+		castleFlag = false;
+	}
+	
 	System.out.println(enPassantX);
 	System.out.println(enPassantY);
 	enPassantTake = false;
@@ -204,11 +225,18 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 		else if (pieceType.equals("K")) {
 			System.out.println(xDifference);
 			if (addedDifference == 1) return true;
+			//Generalise the below to a function?
 			else if (currentPlayer == 0) {
-				if (blackCastleK && ((xDifference == 2 && blackCastleRookRight && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && blackCastleRookLeft && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) return true;
+				if (blackCastleK && ((xDifference == 2 && blackCastleRookRight && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && blackCastleRookLeft && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) {
+					castleFlag = true;
+					return true;
+				}
 				else return false;
 			}else if (currentPlayer == 1) {
-				if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && whiteCastleRookRight && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) return true;
+				if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && whiteCastleRookRight && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) {
+					castleFlag = true;
+					return true;
+				}
 				else return false;
 			}else return false;
 		}
@@ -433,7 +461,7 @@ boolean go = true;
 int currentPlayer = 0;
 
 //Initialise the grid
-String[] orderOne = {"R", "N", "B", "K", "Q", "B", "N", "R"}
+String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"}
 String[] orderTwo = {"R", "N", "B", "Q", "K", "B", "N", "R"}
 //String[] orderTwo = {"R", "N", "N", "N", "K", "N", "N", "R"}
 Piece[][] grid = new Piece[8][8];
@@ -461,7 +489,7 @@ for (int j = 0; j < 8; j++) {
 
 //Set king location
 int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
-boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true;
+boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true, castleFlag;
 
 //Loop while playing
 while (go) {
