@@ -438,7 +438,10 @@ boolean decideMove() {
 		System.out.print("Select a piece: ");
 		String targetPiece = System.console().readLine();
 		System.out.println();
-
+		if (targetPiece.length() != 2 || !Character.isDigit(targetPiece.charAt(0)) || !Character.isDigit(targetPiece.charAt(1))) {
+			System.out.println("Sorry, that's not a valid input.");
+			continue;
+		}
 		startX = Math.abs(Integer.parseInt(targetPiece.substring(0,1)) - 1);
 		startY = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
 
@@ -458,7 +461,13 @@ boolean decideMove() {
 			continue;
 		} else if (targetLocation.equals("BACK")) {
 			return false;
-		}
+		} else if (targetLocation.length() != 2 || !Character.isDigit(targetLocation.charAt(0)) || !Character.isDigit(targetLocation.charAt(1))) {
+			System.out.println("Sorry, that's not a valid input.");
+			continue;
+		}/* else try {
+			Integer.parseInt(targetLocation);
+		
+		} catch(NumberFormatException)*/
 		targetX = Math.abs(Integer.parseInt(targetLocation.substring(0,1)) - 1);
 		targetY = Math.abs(Integer.parseInt(targetLocation.substring(1,2)) - 8);
 		
