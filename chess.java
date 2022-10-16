@@ -111,11 +111,17 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		
 	}
 	changeCoordinates(startX, startY, targetX, targetY);
-	if (enPassantTake) grid[targetY + yDifference][targetX] = null;
+	//if it was an en passant, make sure the pawn is removed
+	Piece passantPawn = null;
+	if (enPassantTake) {
+		passantPawn = grid[targetY + yDifference][targetX];
+		grid[targetY + yDifference][targetX] = null;
+	}
 	// If this movement results in check, move the piece back and return false
 	if (checkCheck()) {
 		changeCoordinates(targetX, targetY, startX, startY);
-		//if an en passant took place, remove the pawn
+		grid[targetY][targetX] = targetLocation;
+		if (enPassantTake) grid[targetY + yDifference][targetX] = passantPawn;
 		return false;
 	}
 	//BELOW MUST ONLY TAKE PLACE IF A MOVE IS SUCCESSFULLY MADE
@@ -128,11 +134,12 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		enPassantX = -1;
 		enPassantY = -1;
 	}
+	//Make it impossible to castle after moving the king
 	if (selectedPiece.type.equals("K")) {
 		if (currentPlayer == 0) blackCastleK = false;
 		else whiteCastleK = false;
 	}
-	
+	//Make it impossible to castle with a rook after moving it
 	if (selectedPiece.type.equals("R") ) {
 		int startXY = startX + startY;
 		if (currentPlayer == 0) {
@@ -144,6 +151,7 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		}
 	}
 	
+	//Move the rook if castling takes place
 	if (castleFlag) {
 		if (currentPlayer == 0) {
 			if (targetX == 2) {
@@ -164,9 +172,7 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		}
 		castleFlag = false;
 	}
-	
-	System.out.println(enPassantX);
-	System.out.println(enPassantY);
+	//
 	enPassantTake = false;
 		
 	return true;
@@ -483,8 +489,8 @@ for (int j = 0; j < 8; j++) {
 		for (int i = 0; i < 8; i++) {
 
 			if (j == 1 || j == 6) {
-				System.out.println();
-				//grid[j][i] = new Piece("P", col);
+				//System.out.println();
+				grid[j][i] = new Piece("P", col);
 
 			} else if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5) {
 				grid[j][i] = new Piece(orderOne[i], col);
