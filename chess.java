@@ -102,7 +102,6 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	//Checks passed!
 	//Move the piece
 	if (castleFlag) {
-		System.out.println(targetX + (xDifference / 2));
 		changeCoordinates(startX, startY, targetX + (xDifference / 2), targetY);
 		if (checkCheck()) {
 			changeCoordinates(targetX + (xDifference / 2), targetY, startX, startY);
@@ -125,8 +124,15 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		return false;
 	}
 	//BELOW MUST ONLY TAKE PLACE IF A MOVE IS SUCCESSFULLY MADE
+	if (checking) {
+		//System.out.println("Confirmed");
+		changeCoordinates(targetX, targetY, startX, startY);
+		grid[targetY][targetX] = targetLocation;
+		if (enPassantTake) grid[targetY + yDifference][targetX] = passantPawn;
+		}
 	//Allow for en passant next move
-	if (enPassantFlag) {
+	
+	if (enPassantFlag && !checking) {
 		enPassantX = targetX;
 		enPassantY = targetY + (yDifference / 2);
 		enPassantFlag = false;
@@ -135,12 +141,12 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		enPassantY = -1;
 	}
 	//Make it impossible to castle after moving the king
-	if (selectedPiece.type.equals("K")) {
+	if (selectedPiece.type.equals("K") && !checking) {
 		if (currentPlayer == 0) blackCastleK = false;
 		else whiteCastleK = false;
 	}
 	//Make it impossible to castle with a rook after moving it
-	if (selectedPiece.type.equals("R") ) {
+	if (selectedPiece.type.equals("R") && !checking) {
 		int startXY = startX + startY;
 		if (currentPlayer == 0) {
 			if (startXY == 0) blackCastleRookRight = false;
@@ -152,7 +158,7 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	}
 	
 	//Move the rook if castling takes place
-	if (castleFlag) {
+	if (castleFlag && !checking) {
 		if (currentPlayer == 0) {
 			if (targetX == 2) {
 				grid[0][3] = grid[0][0];
@@ -198,9 +204,7 @@ void changeCoordinates(int startX, int startY, int targetX, int targetY) {
 
 //Check the piece moves like that
 boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle, Piece targetLocation, int startY, int startX) {
-	//System.out.println(xDifference);
-	//System.out.println(yDifference);
-	//System.out.println(Math.abs(yDifference) + Math.abs(xDifference));
+
 	int addedDifference = Math.abs(yDifference) + Math.abs(xDifference);
 	
 	// angle 3 is diagonal, < 3 is straight
@@ -210,7 +214,6 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 		else if (pieceType.equals("K") && Math.abs(yDifference) == 1) return true;
 		else if (pieceType.equals("P") && pawnCheck(yDifference)) {
 			System.out.println("X = " + enPassantX);
-			//System.out.println(grid[enPassantY][enPassantX]);
 			if (targetLocation != null) return true;
 			else if (enPassantX != -1 && startX - xDifference == enPassantX && startY - yDifference == enPassantY) {
 				//KILL PAWN CODE
@@ -240,7 +243,6 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 		}
 	
 		else if (pieceType.equals("K")) {
-			System.out.println(xDifference);
 			if (addedDifference == 1) return true;
 			//Generalise the below to a function?
 			else if (currentPlayer == 0) {
@@ -322,7 +324,6 @@ boolean checkCheck() {
 						break;
 				}
 			}
-			//System.out.println(targetX + "," + targetY);
 			if (targetY > -1 && targetY < 8 && targetX > -1 && targetX < 8) {
 				if (grid[targetY][targetX] != null) {
 					
@@ -374,8 +375,122 @@ boolean checkCheck() {
 	return false;
 }
 
+int directionSwitchboardX(int number) {
+	switch(number) {
+		case 0:
+			return 1;
+		case 1:
+			return -1;
+		case 2:
+			return 0;
+		case 3:
+			return 0;
+		case 4:
+			return 1;
+		case 5:
+			return -1;
+		case 6:
+			return -1;
+		case 7:
+			return 1;
+		/*case 8:
+			return 1;
+		case 9:
+			return 1;*/
+		
+	}
+	return 0;
+}
+
+int directionSwitchboardY(int number) {
+	switch(number) {
+		case 0:
+			return 0;
+		case 1:
+			return 0;
+		case 2:
+			return 1;
+		case 3:
+			return -1;
+		case 4:
+			return 1;
+		case 5:
+			return -1;
+		case 6:
+			return 1;
+		case 7:
+			return -1;
+		/*case 8:
+			return 1;
+		case 9:
+			return 1;*/
+
+	}
+	return 0;
+}
+	
+boolean checkCheckmateIter() {
+	
+	return true;
+}
+
+boolean checkCheckmate(String type, int startX, int startY) {
+	checking = true;
+	int targetX = 0, targetY = 0, startJ = -1, iterMax = 8, iterCount = 1, directions = 3, yMax = 1;
+	switch(type) {
+		case "P":
+			startJ = currentPlayer * 2 - 1;
+			yMax = startJ;
+			directions = 3;
+			iterMax = 3;
+			break;
+		case "R":
+			directions = 1;
+			break;
+		case "B":
+			directions = 2;
+			break;
+		case "Q":
+			break;
+		case "K":
+			directions = 3;
+			iterMax = 2;
+			break;
+		case "N":
+			
+			break;
+			
+	
+	}
+	for (int i = -1; i <= 1; i++) {
+		//yIterator:
+		for (int j = startJ; j <= yMax; j++) {
+			if ((directions != 3 && Math.abs(i) + Math.abs(j) != directions) || Math.abs(i) + Math.abs(j) == 0) continue;
+			System.out.println("I = " + i + " J = " + j);
+			for (int k = 1; k < iterMax; k++) {
+				targetX = startX - k * i;
+				targetY = startY - k * j;
+				System.out.println("TargetX = " + targetX + " TargetY + " + targetY);
+				if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) break;
+				if (movePiece(startX, startY, targetX, targetY)) {
+					System.out.println("isFine");
+					/*checking = false;
+					return false;*/
+				}
+				if (grid[targetY][targetX] != null) break;
+				
+			}
+			
+		}
+	}
+
+	checking = false;
+	return true;
+}
+
+
 boolean threatCheck(String threatType, int threatX, int threatY, int threatAngle, int kingX, int kingY) {
-	System.out.println("ANGLE = " + threatAngle + " THREAT X = " + threatX + " Y = " + threatY + " type = " + threatType);
+	//System.out.println("ANGLE = " + threatAngle + " THREAT X = " + threatX + " Y = " + threatY + " type = " + threatType);
 	if ((threatAngle <= 3) && (threatType.equals("R") || (threatType.equals("K") && Math.abs(kingY - threatY) <= 1 && Math.abs(kingX - threatX) <= 1) || threatType.equals("Q"))) {
 		return true;
 	} else if ((threatAngle <= 7 && threatAngle > 3) && (threatType.equals("B") || (threatType.equals("K") && Math.abs(kingY - threatY) == 1 && Math.abs(kingX - threatX) == 1) || threatType.equals("Q") || threatType.equals("P"))) {
@@ -413,7 +528,6 @@ void testMove(int startX, int startY) {
 			//Test that the target location is on the grid
 			
 			if (targetX < 8 && targetX > -1 && targetY < 8 && targetY > -1) {
-				//System.out.print("Test");
 				int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1;
 				if (xDifference < 0) xIncrement = -1;
 				if (yDifference < 0) yIncrement = -1;
@@ -498,7 +612,7 @@ for (int j = 0; j < 8; j++) {
 		for (int i = 0; i < 8; i++) {
 
 			if (j == 1 || j == 6) {
-				//System.out.println();
+				//System.out.print("");
 				grid[j][i] = new Piece("P", col);
 
 			} else if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5) {
@@ -512,7 +626,9 @@ for (int j = 0; j < 8; j++) {
 
 //Set king location
 int kingLocationBY = 0, kingLocationBX = 4, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
-boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true, castleFlag;
+boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true, castleFlag, checking;
+
+checkCheckmate("P", 5, 0);
 
 //Loop while playing
 while (go) {
