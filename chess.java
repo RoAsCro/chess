@@ -54,6 +54,7 @@ boolean collision (int yIncrement, int xIncrement, int difference, int targetX, 
 
 
 boolean movePiece(int startX, int startY, int targetX, int targetY) {
+	castleFlag = false;
 	Piece selectedPiece = grid[startY][startX];
 	String pieceType = selectedPiece.type;
 	int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1, angle = 0;
@@ -100,6 +101,15 @@ boolean movePiece(int startX, int startY, int targetX, int targetY) {
 	
 	//Checks passed!
 	//Move the piece
+	if (castleFlag) {
+		System.out.println(targetX + (xDifference / 2));
+		changeCoordinates(startX, startY, targetX + (xDifference / 2), targetY);
+		if (checkCheck()) {
+			changeCoordinates(targetX + (xDifference / 2), targetY, startX, startY);
+			return false;
+		} else changeCoordinates(targetX + (xDifference / 2), targetY, startX, startY);
+		
+	}
 	changeCoordinates(startX, startY, targetX, targetY);
 	if (enPassantTake) grid[targetY + yDifference][targetX] = null;
 	// If this movement results in check, move the piece back and return false
@@ -186,6 +196,7 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 	//System.out.println(yDifference);
 	//System.out.println(Math.abs(yDifference) + Math.abs(xDifference));
 	int addedDifference = Math.abs(yDifference) + Math.abs(xDifference);
+	
 	// angle 3 is diagonal, < 3 is straight
 	if (angle == 3) {
 		if (Math.abs(xDifference) != Math.abs(yDifference) && !pieceType.equals("N")) return false; 
@@ -227,13 +238,13 @@ boolean moveCheck(int xDifference, int yDifference, String pieceType, int angle,
 			if (addedDifference == 1) return true;
 			//Generalise the below to a function?
 			else if (currentPlayer == 0) {
-				if (blackCastleK && ((xDifference == 2 && blackCastleRookRight && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && blackCastleRookLeft && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) {
+				if (blackCastleK && ((xDifference == 2 && blackCastleRookRight && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && blackCastleRookLeft && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null)) && !checkCheck()) {
 					castleFlag = true;
 					return true;
 				}
 				else return false;
 			}else if (currentPlayer == 1) {
-				if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && whiteCastleRookRight && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null))) {
+				if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && whiteCastleRookRight && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null)) && !checkCheck()) {
 					castleFlag = true;
 					return true;
 				}
@@ -310,7 +321,7 @@ boolean checkCheck() {
 				if (grid[targetY][targetX] != null) {
 					
 					if (grid[targetY][targetX].colourCode != currentPlayer) {
-						if ((threatCheck(grid[targetY][targetX].type, targetY, j, startY))) return true;
+						if ((threatCheck(grid[targetY][targetX].type, targetX, targetY, j, startX, startY))) return true;
 					}
 					if (j != 8) break;
 				}
@@ -357,11 +368,11 @@ boolean checkCheck() {
 	return false;
 }
 
-boolean threatCheck(String threatType, int threatY, int threatAngle, int kingY) {
-	
-	if ((threatAngle <= 3) && (threatType.equals("R") || threatType.equals("K") || threatType.equals("Q"))) {
+boolean threatCheck(String threatType, int threatX, int threatY, int threatAngle, int kingX, int kingY) {
+	System.out.println("ANGLE = " + threatAngle + " THREAT X = " + threatX + " Y = " + threatY + " type = " + threatType);
+	if ((threatAngle <= 3) && (threatType.equals("R") || (threatType.equals("K") && Math.abs(kingY - threatY) <= 1 && Math.abs(kingX - threatX) <= 1) || threatType.equals("Q"))) {
 		return true;
-	} else if ((threatAngle <= 7) && (threatType.equals("B") || threatType.equals("K") || threatType.equals("Q") || threatType.equals("P"))) {
+	} else if ((threatAngle <= 7 && threatAngle > 3) && (threatType.equals("B") || (threatType.equals("K") && Math.abs(kingY - threatY) == 1 && Math.abs(kingX - threatX) == 1) || threatType.equals("Q") || threatType.equals("P"))) {
 		if (threatType.equals("P")) {
 			//Can probably use pawnCheck for this
 			if ((currentPlayer == 0 && kingY - threatY == -1) || (currentPlayer == 1 && kingY - threatY == 1)) {
@@ -462,8 +473,7 @@ int currentPlayer = 0;
 
 //Initialise the grid
 String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"}
-String[] orderTwo = {"R", "N", "B", "Q", "K", "B", "N", "R"}
-//String[] orderTwo = {"R", "N", "N", "N", "K", "N", "N", "R"}
+//String[] orderOne = {"R", "N", "N", "N", "K", "N", "N", "R"}
 Piece[][] grid = new Piece[8][8];
 
 for (int j = 0; j < 8; j++) {
@@ -473,13 +483,11 @@ for (int j = 0; j < 8; j++) {
 		for (int i = 0; i < 8; i++) {
 
 			if (j == 1 || j == 6) {
-				grid[j][i] = new Piece("P", col);
+				System.out.println();
+				//grid[j][i] = new Piece("P", col);
 
-			} else if (j == 0) {
+			} else if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5) {
 				grid[j][i] = new Piece(orderOne[i], col);
-
-			} else {
-				grid[j][i] = new Piece(orderTwo[i], col);
 
 			}
 
@@ -488,7 +496,7 @@ for (int j = 0; j < 8; j++) {
 }
 
 //Set king location
-int kingLocationBY = 0, kingLocationBX = 3, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
+int kingLocationBY = 0, kingLocationBX = 4, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
 boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true, castleFlag;
 
 //Loop while playing
