@@ -1,10 +1,13 @@
 public class Grid {
 	
 	Piece[][] grid = new Piece[8][8];
-	int currentPlayer = 0;
-	int kingLocationBY = 0, kingLocationBX = 4, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
-	boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true, castleFlag, checking;
-	boolean go = true;
+	int kingLocationBY = 0, kingLocationBX = 4, kingLocationWY = 7, kingLocationWX = 4, 
+			enPassantX = -1, enPassantY = -1,
+			currentPlayer = 0;
+	boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, 
+			whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true,
+			castleFlag, checking,
+			go = true;
 	
 	public static void main(String[] args) {
 		Grid game = new Grid();
@@ -31,7 +34,7 @@ public class Grid {
 							//System.out.print("");
 							grid[j][i] = new Piece("P", col);
 			
-						} else if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5) {
+						} else /*if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5)*/ {
 							grid[j][i] = new Piece(orderOne[i], col);
 			
 						}
@@ -43,7 +46,7 @@ public class Grid {
 			//Set king location
 			
 			
-			checkCheckmate("P", 5, 0);
+			checkCheckmate("N", 1, 0);
 			
 			//Loop while playing
 			while (go) {
@@ -487,11 +490,17 @@ public class Grid {
 		} else {
 			for (int i = -2; i < 3; i++) {
 				if (i == 0) continue;
-				targetX = startX - i;
-				targetY = targetX * 2;
-				
-				
-						
+				for (int j = 0; j <= 1; j++) {
+					targetX = startX - i;
+					targetY = (j == 0 ? -1 : +1) * (startY - (Math.abs(i) < 2 ? i * 2 : i / 2));
+					System.out.println( "X = " + targetX + " Y = " + targetY);
+					if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) continue;
+					if (movePiece(startX, startY, targetX, targetY)) {
+						System.out.println("isFine");
+						/*checking = false;
+						return false;*/
+					}
+				}
 			}
 		}
 		checking = false;
