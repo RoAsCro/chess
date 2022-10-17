@@ -22,7 +22,7 @@ public class Player {
 	public boolean canCastle(int xDifference) {
 		if (kingCanCastle) {
 			if (xDifference == 2 && leftRookCanCastle) return true;
-			else if (xDifference == -1 && rightRookCanCastle) return true;
+			else if (xDifference == -2 && rightRookCanCastle) return true;
 			else return false;
 		} else return false;
 	}

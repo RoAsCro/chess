@@ -1,7 +1,7 @@
 public class Grid {
 	
 	Player white = new Player("White", 1, 4, 7), black = new Player("Black", 0, 4, 0);
-	Player[] players = {white, black};
+	Player[] players = {black, white};
 	Piece[][] grid = new Piece[8][8];
 	Player currentPlayer = players[0];
 	//Lists of untake pieces
@@ -40,14 +40,13 @@ public class Grid {
 					for (int i = 0; i < 8; i++) {
 			
 						if (j == 1 || j == 6) {
-							//System.out.print("");
-							grid[j][i] = new Piece("P", col, i, j, i);
+							//grid[j][i] = new Piece("P", col, i, j, i);
 							if (j == 1) {
 								black.addPiece(grid[j][i], i);
 							} else  white.addPiece(grid[j][i], i);
 							
 			
-						} else /*if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5)*/ {
+						} else if (i == 0 || i == 4 || i == 7 || i == 3/*|| i == 5*/) {
 							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8);
 							if (j == 0) {
 								black.addPiece(grid[j][i], i+8);
@@ -154,7 +153,7 @@ public class Grid {
 		if (!moveCheck(xDifference, yDifference, pieceType, angle, targetLocation, startY, startX)) return false;
 		
 		//Check if piece in the way
-		if (!selectedPiece.type.equals("N")) {
+		if (!pieceType.equals("N")) {
 			
 			if (xDifference < 0) xIncrement = -1;
 			if (yDifference < 0) yIncrement = -1;
@@ -179,7 +178,7 @@ public class Grid {
 		
 		
 		//Checks passed!
-		//Move the piece
+		
 		if (castleFlag) {
 			changeCoordinates(startX, startY, targetX + (xDifference / 2), targetY);
 			if (checkCheck()) {
@@ -242,9 +241,10 @@ public class Grid {
 		}
 		//Make it impossible to castle with a rook after moving it
 		if (selectedPiece.type.equals("R") && !checking) {
-			if (selectedPiece.x == 0 && (selectedPiece.y == 0 || selectedPiece.y == 7)) {
+			//repetition below
+			if (startX == 0 && (startY == 0 || startY == 7)) {
 				currentPlayer.cannotCastle("R", "left");
-			} else if (selectedPiece.x == 7 && (selectedPiece.y == 0 || selectedPiece.y == 7)){
+			} else if (startX == 7 && (startX == 0 || startY == 7)){
 				currentPlayer.cannotCastle("R", "right");
 			}
 		}
@@ -255,8 +255,6 @@ public class Grid {
 				changeCoordinates(0, selectedPiece.y, 3, selectedPiece.y);
 			} else if (targetX == 6) {
 				changeCoordinates(7, selectedPiece.y, 5, selectedPiece.y);
-				grid[0][5] = grid[0][7];
-				grid[0][7] = null;
 			}
 			castleFlag = false;
 		}
@@ -321,7 +319,7 @@ public class Grid {
 			else if (pieceType.equals("K")) {
 				if (addedDifference == 1) return true;
 				//Generalise the below to a function?
-				else if (currentPlayer.canCastle(xDifference) && grid[startY][startX - xDifference / 2] == null && !checkCheck()) {
+				else if (currentPlayer.canCastle(xDifference) && grid[startY][startX - xDifference / 2] == null && grid[startY][startX - xDifference - 1] == null && !checkCheck()) {
 					castleFlag = true;
 					return true;
 				} else return false;
