@@ -1,3 +1,4 @@
+/*
 class Piece {
 	//colour is represented by the letter, colourCode is 0 or 1, 0 = black, 1 = white
 	String type, colour;
@@ -375,59 +376,7 @@ boolean checkCheck() {
 	return false;
 }
 
-int directionSwitchboardX(int number) {
-	switch(number) {
-		case 0:
-			return 1;
-		case 1:
-			return -1;
-		case 2:
-			return 0;
-		case 3:
-			return 0;
-		case 4:
-			return 1;
-		case 5:
-			return -1;
-		case 6:
-			return -1;
-		case 7:
-			return 1;
-		/*case 8:
-			return 1;
-		case 9:
-			return 1;*/
-		
-	}
-	return 0;
-}
 
-int directionSwitchboardY(int number) {
-	switch(number) {
-		case 0:
-			return 0;
-		case 1:
-			return 0;
-		case 2:
-			return 1;
-		case 3:
-			return -1;
-		case 4:
-			return 1;
-		case 5:
-			return -1;
-		case 6:
-			return 1;
-		case 7:
-			return -1;
-		/*case 8:
-			return 1;
-		case 9:
-			return 1;*/
-
-	}
-	return 0;
-}
 	
 boolean checkCheckmateIter() {
 	
@@ -437,6 +386,7 @@ boolean checkCheckmateIter() {
 boolean checkCheckmate(String type, int startX, int startY) {
 	checking = true;
 	int targetX = 0, targetY = 0, startJ = -1, iterMax = 8, iterCount = 1, directions = 3, yMax = 1;
+	boolean knight = false;
 	switch(type) {
 		case "P":
 			startJ = currentPlayer * 2 - 1;
@@ -457,33 +407,41 @@ boolean checkCheckmate(String type, int startX, int startY) {
 			iterMax = 2;
 			break;
 		case "N":
-			
-			break;
-			
-	
+			knight = true;
+			break;	
 	}
-	for (int i = -1; i <= 1; i++) {
-		//yIterator:
-		for (int j = startJ; j <= yMax; j++) {
-			if ((directions != 3 && Math.abs(i) + Math.abs(j) != directions) || Math.abs(i) + Math.abs(j) == 0) continue;
-			System.out.println("I = " + i + " J = " + j);
-			for (int k = 1; k < iterMax; k++) {
-				targetX = startX - k * i;
-				targetY = startY - k * j;
-				System.out.println("TargetX = " + targetX + " TargetY + " + targetY);
-				if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) break;
-				if (movePiece(startX, startY, targetX, targetY)) {
-					System.out.println("isFine");
-					/*checking = false;
-					return false;*/
+	
+	
+	if (!knight) {		
+		for (int i = -1; i <= 1; i++) {
+			//yIterator:
+			for (int j = startJ; j <= yMax; j++) {
+				if ((directions != 3 && Math.abs(i) + Math.abs(j) != directions) || Math.abs(i) + Math.abs(j) == 0) continue;
+				System.out.println("I = " + i + " J = " + j);
+				for (int k = 1; k < iterMax; k++) {
+					targetX = startX - k * i;
+					targetY = startY - k * j;
+					System.out.println("TargetX = " + targetX + " TargetY + " + targetY);
+					if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) break;
+					if (movePiece(startX, startY, targetX, targetY)) {
+						System.out.println("isFine");
+						checking = false;
+						return false;
+					}
+					if (grid[targetY][targetX] != null) break;
+					
 				}
-				if (grid[targetY][targetX] != null) break;
 				
 			}
-			
+		}
+	} else {
+		for (int i = -2; i < 3; i++) {
+			if (i == 0) continue;
+			targetX = startX - i;
+			targetY = targetX * 2;
+					
 		}
 	}
-
 	checking = false;
 	return true;
 }
@@ -578,10 +536,7 @@ boolean decideMove() {
 		} else if (targetLocation.length() != 2 || !Character.isDigit(targetLocation.charAt(0)) || !Character.isDigit(targetLocation.charAt(1))) {
 			System.out.println("Sorry, that's not a valid input.");
 			continue;
-		}/* else try {
-			Integer.parseInt(targetLocation);
-		
-		} catch(NumberFormatException)*/
+		}
 		targetX = Math.abs(Integer.parseInt(targetLocation.substring(0,1)) - 1);
 		targetY = Math.abs(Integer.parseInt(targetLocation.substring(1,2)) - 8);
 		
@@ -601,7 +556,7 @@ boolean go = true;
 int currentPlayer = 0;
 
 //Initialise the grid
-String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"}
+String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"};
 //String[] orderOne = {"R", "N", "N", "N", "K", "N", "N", "R"}
 Piece[][] grid = new Piece[8][8];
 
@@ -626,9 +581,9 @@ for (int j = 0; j < 8; j++) {
 
 //Set king location
 int kingLocationBY = 0, kingLocationBX = 4, kingLocationWY = 7, kingLocationWX = 4, enPassantX = -1, enPassantY = -1;
-boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true, castleFlag, checking;
+boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true, castleFlag, checking = false;
 
-checkCheckmate("P", 5, 0);
+//checkCheckmate("P", 5, 0);
 
 //Loop while playing
 while (go) {
@@ -644,3 +599,4 @@ while (go) {
 		if (decideMove()) loopDecision = false;
 	 }
 }
+*/
