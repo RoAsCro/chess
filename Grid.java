@@ -1,18 +1,17 @@
 public class Grid {
 	
+	Player white = new Player("White", 1, 4, 7), black = new Player("Black", 0, 4, 0);
+	Player[] players = {white, black};
 	Piece[][] grid = new Piece[8][8];
+	Player currentPlayer = players[0];
 	//Lists of untake pieces
-	Piece[] whitePieces = new Piece[16],
-			blackPieces = new Piece[16];
 	//Where the king currently is - might be redundant with the lists
-	int kingLocationBY = 0, kingLocationBX = 4, kingLocationWY = 7, kingLocationWX = 4, 
+	int 
 			//Where an en passant is happening - (-1,-1) is nowhere
-			enPassantX = -1, enPassantY = -1,
-			currentPlayer = 0;
-	//Flags for if an en passant happened last turn, if something needs to be removed if the en passant is successful, whether the King has moved this game
-	boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, 
-			//Whether each rook has moved this game
-			whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true,
+			enPassantX = -1, enPassantY = -1;
+			//currentPlayer = 0;
+	//Flags for if an en passant happened last turn, if something needs to be removed if the en passant is successful
+	boolean enPassantFlag, enPassantTake, 
 			//Whether a castle is attempting to take place, whether the game is checking for checkmate and not making real moves
 			castleFlag, checking,
 			go = true;
@@ -29,8 +28,6 @@ public class Grid {
 	
 	void run() {
 			//Initialise the two players
-			Player[] players = new Player[2];
-			Player white = new Player("White", 1), black = new Player("Black", 0);
 		
 			//Initialise the grid
 			String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"};
@@ -46,15 +43,15 @@ public class Grid {
 							//System.out.print("");
 							grid[j][i] = new Piece("P", col, i, j, i);
 							if (j == 1) {
-								blackPieces[i] = grid[j][i];
-							} else  whitePieces[i] = grid[j][i];
+								black.addPiece(grid[j][i], i);
+							} else  white.addPiece(grid[j][i], i);
 							
 			
 						} else /*if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5)*/ {
 							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8);
 							if (j == 0) {
-								blackPieces[i+8] = grid[j][i];
-							} else  whitePieces[i+8] = grid[j][i];
+								black.addPiece(grid[j][i], i+8);
+							} else  white.addPiece(grid[j][i], i+8);
 			
 						}
 			
@@ -67,7 +64,7 @@ public class Grid {
 			//Loop while playing
 			while (go) {
 				printGrid();
-				currentPlayer = Math.abs(currentPlayer - 1);
+				currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
 				if (checkCheck()) {
 					if (checkCheckmateIter()) {
 						System.out.println("Chcekmate! Game Over!");
@@ -75,14 +72,14 @@ public class Grid {
 						break;
 					}
 				}
-				currentPlayer = Math.abs(currentPlayer - 1);
+				currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
 				if (checkCheckmateIter()) {
 					System.out.println("Stalemate! Game Over!");
 					go = false;
 					break;
 				}
 				//System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
-				currentPlayer = Math.abs(currentPlayer - 1);
+				currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
 				//System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 				//Piece selection formatted xy - 11, 14 etc.
 				
@@ -149,7 +146,7 @@ public class Grid {
 		if (angle == 0) return false;
 		
 		//Target location is not occupied by one of current player's pieces
-		if (targetLocation != null && targetLocation.colourCode == currentPlayer) {
+		if (targetLocation != null && targetLocation.colourCode == currentPlayer.code()) {
 			return false;
 		}
 		
@@ -220,10 +217,9 @@ public class Grid {
 			selectedPiece.x = targetX;
 			selectedPiece.y = targetY;
 			if (targetLocation != null) {
-				if (currentPlayer == 1) blackPieces[targetLocation.listReference] = null;
-				else whitePieces[targetLocation.listReference] = null;
+				currentPlayer.removePiece(targetLocation.listReference);
 			if (enPassantTake) {
-				if (currentPlayer == 1) blackPieces[passantPawn.listReference] = null;
+				currentPlayer.removePiece(passantPawn.listReference);
 			}
 				
 			}
@@ -242,39 +238,25 @@ public class Grid {
 		}
 		//Make it impossible to castle after moving the king
 		if (selectedPiece.type.equals("K") && !checking) {
-			if (currentPlayer == 0) blackCastleK = false;
-			else whiteCastleK = false;
+			currentPlayer.cannotCastle("K", "");
 		}
 		//Make it impossible to castle with a rook after moving it
 		if (selectedPiece.type.equals("R") && !checking) {
-			int startXY = startX + startY;
-			if (currentPlayer == 0) {
-				if (startXY == 0) blackCastleRookRight = false;
-				if (startXY == 7) blackCastleRookLeft = false;
-			} else {
-				if (startXY == 14) whiteCastleRookRight = false;
-				if (startXY == 7) whiteCastleRookLeft = false;
+			if (selectedPiece.x == 0 && (selectedPiece.y == 0 || selectedPiece.y == 7)) {
+				currentPlayer.cannotCastle("R", "left");
+			} else if (selectedPiece.x == 7 && (selectedPiece.y == 0 || selectedPiece.y == 7)){
+				currentPlayer.cannotCastle("R", "right");
 			}
 		}
 		
-		//Move the rook if castling takes place
+		//Move the rook if castling takes place - NOTE: there is no conceivable situation where the rook's movement alone would affect check checking
 		if (castleFlag && !checking) {
-			if (currentPlayer == 0) {
-				if (targetX == 2) {
-					grid[0][3] = grid[0][0];
-					grid[0][0] = null;
-				} else if (targetX == 6) {
-					grid[0][5] = grid[0][7];
-					grid[0][7] = null;
-				}
-			} else {
-				if (targetX == 2) {
-					grid[7][3] = grid[7][0];
-					grid[7][0] = null;
-				} else if (targetX == 6) {
-					grid[7][5] = grid[7][7];
-					grid[7][7] = null;
-				}
+			if (targetX == 2) {
+				changeCoordinates(0, selectedPiece.y, 3, selectedPiece.y);
+			} else if (targetX == 6) {
+				changeCoordinates(7, selectedPiece.y, 5, selectedPiece.y);
+				grid[0][5] = grid[0][7];
+				grid[0][7] = null;
 			}
 			castleFlag = false;
 		}
@@ -288,13 +270,7 @@ public class Grid {
 		Piece selectedPiece = grid[startY][startX];
 		
 		if (selectedPiece.type.equals("K")) {
-			if (selectedPiece.colourCode == 0) {
-				kingLocationBX = targetX;
-				kingLocationBY = targetY;
-			} else {
-				kingLocationWX = targetX;
-				kingLocationWY = targetY;
-			}
+			currentPlayer.moveKing(targetX, targetY);
 		}
 	
 		grid[targetY][targetX] = selectedPiece;
@@ -332,8 +308,8 @@ public class Grid {
 		} else if (angle < 3) {
 	
 			if (pieceType.equals("P")) {
-				if (pawnCheck(yDifference)) return true; 
-				else if ((currentPlayer == 0 && startY == 1 && yDifference == -2) || (currentPlayer == 1 && startY == 6 && yDifference == 2)) {
+				if (currentPlayer.code() * 2 - 1 == yDifference) return true; 
+				else if (startY == currentPlayer.code() * 5 + 1 && Math.abs(yDifference) == 2) {
 					enPassantFlag = true;
 					return true;
 					
@@ -345,19 +321,10 @@ public class Grid {
 			else if (pieceType.equals("K")) {
 				if (addedDifference == 1) return true;
 				//Generalise the below to a function?
-				else if (currentPlayer == 0) {
-					if (blackCastleK && ((xDifference == 2 && blackCastleRookRight && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && blackCastleRookLeft && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null)) && !checkCheck()) {
-						castleFlag = true;
-						return true;
-					}
-					else return false;
-				}else if (currentPlayer == 1) {
-					if (whiteCastleK && ((xDifference == 2 && whiteCastleRookLeft && grid[startY][startX - 1] == null && grid[startY][startX - 2] == null && grid[startY][startX - 3] == null) || (xDifference == -2 && whiteCastleRookRight && grid[startY][startX + 1] == null && grid[startY][startX + 2] == null)) && !checkCheck()) {
-						castleFlag = true;
-						return true;
-					}
-					else return false;
-				}else return false;
+				else if (currentPlayer.canCastle(xDifference) && grid[startY][startX - xDifference / 2] == null && !checkCheck()) {
+					castleFlag = true;
+					return true;
+				} else return false;
 			}
 			
 			else if (!(pieceType.equals("R") || pieceType.equals("Q"))) return false;
@@ -367,7 +334,7 @@ public class Grid {
 	
 	//If piece is a pawn, check it's moving in the right direction
 	 boolean pawnCheck(int yDifference) {
-		if ((currentPlayer == 0 && yDifference != -1) || (currentPlayer == 1 && yDifference != 1)) return false;
+		if (!(currentPlayer.code() * 2 - 1 == yDifference)) return false;
 		else return true;
 	}
 	
@@ -375,14 +342,7 @@ public class Grid {
 	//Check if in check
 	 boolean checkCheck() {
 		boolean checking = true;
-		int startX, startY;
-		if (currentPlayer == 0) {
-			startX = kingLocationBX;
-			startY = kingLocationBY;
-		} else {
-			startX = kingLocationWX;
-			startY = kingLocationWY;
-		}
+		int startX = currentPlayer.findKing("x"), startY = currentPlayer.findKing("y");
 		int testVertical = 0, testHorizontal = 1;
 			
 		for (int j = 0; checking; j++){
@@ -427,7 +387,7 @@ public class Grid {
 				if (targetY > -1 && targetY < 8 && targetX > -1 && targetX < 8) {
 					if (grid[targetY][targetX] != null) {
 						
-						if (grid[targetY][targetX].colourCode != currentPlayer) {
+						if (grid[targetY][targetX].colourCode != currentPlayer.code()) {
 							if ((threatCheck(grid[targetY][targetX].type, targetX, targetY, j, startX, startY))) return true;
 						}
 						if (j != 8) break;
@@ -480,10 +440,10 @@ public class Grid {
 	
 		
 	boolean checkCheckmateIter() {
-		Piece[] playerPieces = currentPlayer == 0 ? blackPieces : whitePieces;
-		for (Piece i : playerPieces) {
-			if (i != null) {
-				if (!checkCheckmate(i.type, i.x, i.y)) return false;			
+		for (int i = 0 ; i < 16; i++) {
+			Piece piece = currentPlayer.selectPiece(i);
+			if (piece != null) {
+				if (!checkCheckmate(piece.type, piece.x, piece.y)) return false;			
 			}
 		}
 		//if no pieces disprove you're in checkmate, you're in checkmate
@@ -498,7 +458,7 @@ public class Grid {
 		switch(type) {
 			case "P":
 				//Pawns are a special case
-				startJ = currentPlayer * 2 - 1;
+				startJ = currentPlayer.code() * 2 - 1;
 				yMax = startJ;
 				directions = 3;
 				iterMax = 3;
@@ -577,7 +537,7 @@ public class Grid {
 		} else if ((threatAngle <= 7 && threatAngle > 3) && (threatType.equals("B") || (threatType.equals("K") && Math.abs(kingY - threatY) == 1 && Math.abs(kingX - threatX) == 1) || threatType.equals("Q") || threatType.equals("P"))) {
 			if (threatType.equals("P")) {
 				//Can probably use pawnCheck for this
-				if ((currentPlayer == 0 && kingY - threatY == -1) || (currentPlayer == 1 && kingY - threatY == 1)) {
+				if (currentPlayer.code() * 2 - 1 == kingY - threatY) {
 					return true;
 				}
 			} else return true;
@@ -641,7 +601,7 @@ public class Grid {
 			startY = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
 	
 			//Check valid piece
-			if (grid[startY][startX] == null || grid[startY][startX].colourCode != currentPlayer) {
+			if (grid[startY][startX] == null || grid[startY][startX].colourCode != currentPlayer.code()) {
 				System.out.println("Sorry, that's not a valid piece.");
 			} else selectPiece = false;
 		}

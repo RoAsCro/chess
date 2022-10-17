@@ -5,6 +5,19 @@ Reduce number of steps in pawn checkmate checking
 simplify the input checking with ? : if else (Probs also some Null checks?)
 Explore the advantages of making players objects
 
+NEED TO REVERSE LEFT AND RIGHT FOR SOME ROOKS
+CASTLING DOES NOT UPDATE COORDINATES
+DEPRECATE PAWNCHECK? USE IT MORE?
+UPDATE KING LOCATION
+
+Check pawns cannot move two spaces backwards for their first move
+
+
+Castling
+Enpassant
+Birthday move
+
+
 Checkmate
 Stalemate
 3 Move repetition
