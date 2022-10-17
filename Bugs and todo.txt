@@ -3,7 +3,9 @@ Bug?: two variables named checking, change one of them
 Fix: Simplify the checkCheck method so it works like checkCheckmate
 Reduce number of steps in pawn checkmate checking
 simplify the input checking with ? : if else (Probs also some Null checks?)
+Explore the advantages of making players objects
 
 Checkmate
 Stalemate
 3 Move repetition
+Promotion

@@ -1,11 +1,19 @@
 public class Grid {
 	
 	Piece[][] grid = new Piece[8][8];
+	//Lists of untake pieces
+	Piece[] whitePieces = new Piece[16],
+			blackPieces = new Piece[16];
+	//Where the king currently is - might be redundant with the lists
 	int kingLocationBY = 0, kingLocationBX = 4, kingLocationWY = 7, kingLocationWX = 4, 
+			//Where an en passant is happening - (-1,-1) is nowhere
 			enPassantX = -1, enPassantY = -1,
 			currentPlayer = 0;
+	//Flags for if an en passant happened last turn, if something needs to be removed if the en passant is successful, whether the King has moved this game
 	boolean enPassantFlag, enPassantTake, whiteCastleK = true, blackCastleK = true, 
+			//Whether each rook has moved this game
 			whiteCastleRookLeft = true, whiteCastleRookRight = true, blackCastleRookLeft = true, blackCastleRookRight = true,
+			//Whether a castle is attempting to take place, whether the game is checking for checkmate and not making real moves
 			castleFlag, checking,
 			go = true;
 	
@@ -19,7 +27,11 @@ public class Grid {
 		////Starting variables
 		
 	
-	void run() {	
+	void run() {
+			//Initialise the two players
+			Player[] players = new Player[2];
+			Player white = new Player("White", 1), black = new Player("Black", 0);
+		
 			//Initialise the grid
 			String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"};
 			//String[] orderOne = {"R", "N", "N", "N", "K", "N", "N", "R"}
@@ -32,10 +44,17 @@ public class Grid {
 			
 						if (j == 1 || j == 6) {
 							//System.out.print("");
-							grid[j][i] = new Piece("P", col);
+							grid[j][i] = new Piece("P", col, i, j, i);
+							if (j == 1) {
+								blackPieces[i] = grid[j][i];
+							} else  whitePieces[i] = grid[j][i];
+							
 			
 						} else /*if (i == 0 || i == 4 || i == 7 || i == 3|| i == 5)*/ {
-							grid[j][i] = new Piece(orderOne[i], col);
+							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8);
+							if (j == 0) {
+								blackPieces[i+8] = grid[j][i];
+							} else  whitePieces[i+8] = grid[j][i];
 			
 						}
 			
@@ -43,18 +62,30 @@ public class Grid {
 				}
 			}
 			
-			//Set king location
 			
-			
-			checkCheckmate("N", 1, 0);
 			
 			//Loop while playing
 			while (go) {
 				printGrid();
-				System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 				currentPlayer = Math.abs(currentPlayer - 1);
-				System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
+				if (checkCheck()) {
+					if (checkCheckmateIter()) {
+						System.out.println("Chcekmate! Game Over!");
+						go = false;
+						break;
+					}
+				}
+				currentPlayer = Math.abs(currentPlayer - 1);
+				if (checkCheckmateIter()) {
+					System.out.println("Stalemate! Game Over!");
+					go = false;
+					break;
+				}
+				//System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
+				currentPlayer = Math.abs(currentPlayer - 1);
+				//System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
 				//Piece selection formatted xy - 11, 14 etc.
+				
 				
 				
 				boolean loopDecision = true;
@@ -103,7 +134,6 @@ public class Grid {
 		}
 		return true;
 	}
-	
 	
 	 boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		castleFlag = false;
@@ -176,13 +206,31 @@ public class Grid {
 			return false;
 		}
 		//BELOW MUST ONLY TAKE PLACE IF A MOVE IS SUCCESSFULLY MADE
+		
+		
 		if (checking) {
 			//System.out.println("Confirmed");
 			changeCoordinates(targetX, targetY, startX, startY);
 			grid[targetY][targetX] = targetLocation;
 			if (enPassantTake) grid[targetY + yDifference][targetX] = passantPawn;
 			}
+		
+		//remove pieces from the list of untaken pieces
+		if (!checking) {
+			selectedPiece.x = targetX;
+			selectedPiece.y = targetY;
+			if (targetLocation != null) {
+				if (currentPlayer == 1) blackPieces[targetLocation.listReference] = null;
+				else whitePieces[targetLocation.listReference] = null;
+			if (enPassantTake) {
+				if (currentPlayer == 1) blackPieces[passantPawn.listReference] = null;
+			}
+				
+			}
+			
+		}
 		//Allow for en passant next move
+		
 		
 		if (enPassantFlag && !checking) {
 			enPassantX = targetX;
@@ -432,16 +480,24 @@ public class Grid {
 	
 		
 	boolean checkCheckmateIter() {
-		
+		Piece[] playerPieces = currentPlayer == 0 ? blackPieces : whitePieces;
+		for (Piece i : playerPieces) {
+			if (i != null) {
+				if (!checkCheckmate(i.type, i.x, i.y)) return false;			
+			}
+		}
+		//if no pieces disprove you're in checkmate, you're in checkmate
 		return true;
 	}
 	
 	 boolean checkCheckmate(String type, int startX, int startY) {
+		//checking is a flag to ensure nothing permanant happens during this check.
 		checking = true;
 		int targetX = 0, targetY = 0, startJ = -1, iterMax = 8, directions = 3, yMax = 1;
 		boolean knight = false;
 		switch(type) {
 			case "P":
+				//Pawns are a special case
 				startJ = currentPlayer * 2 - 1;
 				yMax = startJ;
 				directions = 3;
@@ -466,27 +522,33 @@ public class Grid {
 		
 		
 		if (!knight) {		
+			//Go through every possible move a piece might make, going through that piece's eligible directions
+			//i and j are essentially functions of x and y, (i= 1, j= 1) meaning x=y, (-1,1) meaning -x = y, but direction from the origin matters here
 			for (int i = -1; i <= 1; i++) {
-				//yIterator:
 				for (int j = startJ; j <= yMax; j++) {
+					//absolute values of i and j = 2 means diagonal, = 1 means horizontal. 3 Just indicates every direction.
+					//The below skips over directions the piece can't move in
 					if ((directions != 3 && Math.abs(i) + Math.abs(j) != directions) || Math.abs(i) + Math.abs(j) == 0) continue;
-					System.out.println("I = " + i + " J = " + j);
+					//Finally k is the direction
 					for (int k = 1; k < iterMax; k++) {
 						targetX = startX - k * i;
 						targetY = startY - k * j;
-						System.out.println("TargetX = " + targetX + " TargetY + " + targetY);
+						//System.out.println("TargetX = " + targetX + " TargetY + " + targetY);
 						if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) break;
+						
+						//If a piece has a spot they can move to without it resulting in check, end the the checkmate iter returning false
 						if (movePiece(startX, startY, targetX, targetY)) {
-							System.out.println("isFine");
-							/*checking = false;
-							return false;*/
+							checking = false;
+							return false;
 						}
+						//If a piece is encountered, stop looking in that direction
 						if (grid[targetY][targetX] != null) break;
 						
 					}
 					
 				}
 			}
+		//Knights have their own special rules
 		} else {
 			for (int i = -2; i < 3; i++) {
 				if (i == 0) continue;
@@ -496,14 +558,14 @@ public class Grid {
 					System.out.println( "X = " + targetX + " Y = " + targetY);
 					if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) continue;
 					if (movePiece(startX, startY, targetX, targetY)) {
-						System.out.println("isFine");
-						/*checking = false;
-						return false;*/
+						checking = false;
+						return false;
 					}
 				}
 			}
 		}
 		checking = false;
+		//If return true, continue the checkCheckmateIter
 		return true;
 	}
 	
