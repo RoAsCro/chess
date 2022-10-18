@@ -232,7 +232,7 @@ public class Grid {
 			enPassantX = targetX;
 			enPassantY = targetY + (yDifference / 2);
 			enPassantFlag = false;
-		} else {
+		} else if (!checking) {
 			enPassantX = -1;
 			enPassantY = -1;
 		}
