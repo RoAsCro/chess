@@ -40,14 +40,14 @@ public class Grid {
 					for (int i = 0; i < 8; i++) {
 			
 						if (j == 1 || j == 6) {
-							grid[j][i] = new Piece("P", col, i, j, i);
+							//grid[j][i] = new Piece("P", col, i, j, i, col == 0 ? black : white);
 							if (j == 1) {
 								black.addPiece(grid[j][i], i);
 							} else  white.addPiece(grid[j][i], i);
 							
 			
 						} else if (i == 0 || i == 4 || i == 7 || i == 3/*|| i == 5*/) {
-							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8);
+							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8, col == 0 ? black : white);
 							if (j == 0) {
 								black.addPiece(grid[j][i], i+8);
 							} else  white.addPiece(grid[j][i], i+8);
@@ -62,6 +62,7 @@ public class Grid {
 			
 			//Loop while playing
 			while (go) {
+				currentPlayer.printList();
 				printGrid();
 				currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
 				if (checkCheck()) {
@@ -104,7 +105,7 @@ public class Grid {
 	
 				visualGrid = visualGrid + "[ ";
 				if (q != null) {
-					visualGrid = visualGrid + q.type + q.colour;
+					visualGrid = visualGrid + q.getType() + q.getColour();
 	
 				} else visualGrid = visualGrid + "  ";
 				visualGrid = visualGrid + " ]";
@@ -120,7 +121,7 @@ public class Grid {
 	
 		for (int i = 0; i != difference && j != difference;) {
 			//CHECK IF YOU CAN REMOVE WHAT COMES AFTER THE OR - I think it's supposed to check the target piece is not one of the current player's, which is handled elsewhere now
-			if (!(grid[targetY + i][targetX + j] == null || (i == 0 && grid[targetY + i][targetX + j] != null && grid[targetY + i][targetX + j].colour != selectedPiece.colour))) {
+			if (!(grid[targetY + i][targetX + j] == null || (i == 0 && grid[targetY + i][targetX + j] != null && grid[targetY + i][targetX + j].getColour() != selectedPiece.getColour()))) {
 				return false;
 			}
 	
@@ -134,7 +135,7 @@ public class Grid {
 	 boolean movePiece(int startX, int startY, int targetX, int targetY) {
 		castleFlag = false;
 		Piece selectedPiece = grid[startY][startX];
-		String pieceType = selectedPiece.type;
+		String pieceType = selectedPiece.getType();
 		int xDifference = startX - targetX, yDifference = startY - targetY, xIncrement = 1, yIncrement = 1, angle = 0;
 		Piece targetLocation = grid[targetY][targetX];
 		
@@ -145,7 +146,7 @@ public class Grid {
 		if (angle == 0) return false;
 		
 		//Target location is not occupied by one of current player's pieces
-		if (targetLocation != null && targetLocation.colourCode == currentPlayer.code()) {
+		if (targetLocation != null && targetLocation.isPlayer(currentPlayer)) {
 			return false;
 		}
 		
@@ -214,12 +215,11 @@ public class Grid {
 		
 		//remove pieces from the list of untaken pieces
 		if (!checking) {
-			selectedPiece.x = targetX;
-			selectedPiece.y = targetY;
+			selectedPiece.setCoordinates(targetX, targetY);
 			if (targetLocation != null) {
-				currentPlayer.removePiece(targetLocation.listReference);
+				targetLocation.beTaken();
 			if (enPassantTake) {
-				currentPlayer.removePiece(passantPawn.listReference);
+				passantPawn.beTaken();
 			}
 				
 			}
@@ -237,11 +237,11 @@ public class Grid {
 			enPassantY = -1;
 		}
 		//Make it impossible to castle after moving the king
-		if (selectedPiece.type.equals("K") && !checking) {
+		if (selectedPiece.checkType("K") && !checking) {
 			currentPlayer.cannotCastle("K", "");
 		}
 		//Make it impossible to castle with a rook after moving it
-		if (selectedPiece.type.equals("R") && !checking) {
+		if (selectedPiece.checkType("R") && !checking) {
 			//repetition below
 			if (startX == 0 && (startY == 0 || startY == 7)) {
 				currentPlayer.cannotCastle("R", "left");
@@ -254,8 +254,8 @@ public class Grid {
 		if (castleFlag && !checking) {
 			//Castle X - where the rook is to move, Rook X - where the rook in question is located
 			int castleX = targetX - (targetX / 2 - 2), rookX = (targetX - 2) / 4 * 7;
-			grid[selectedPiece.y][rookX].x = castleX;
-			changeCoordinates(rookX, selectedPiece.y, castleX, selectedPiece.y);			
+			grid[startY][rookX].setCoordinates(castleX, startY);
+			changeCoordinates(rookX, startY, castleX, startY);			
 			castleFlag = false;
 		}
 		//
@@ -267,7 +267,7 @@ public class Grid {
 	 void changeCoordinates(int startX, int startY, int targetX, int targetY) {
 		Piece selectedPiece = grid[startY][startX];
 		
-		if (selectedPiece.type.equals("K")) {
+		if (selectedPiece.checkType("K")) {
 			currentPlayer.moveKing(targetX, targetY);
 		};
 		grid[targetY][targetX] = selectedPiece;
@@ -382,8 +382,8 @@ public class Grid {
 				if (targetY > -1 && targetY < 8 && targetX > -1 && targetX < 8) {
 					if (grid[targetY][targetX] != null) {
 						
-						if (grid[targetY][targetX].colourCode != currentPlayer.code()) {
-							if ((threatCheck(grid[targetY][targetX].type, targetX, targetY, j, startX, startY))) return true;
+						if (!(grid[targetY][targetX].isPlayer(currentPlayer))) {
+							if ((threatCheck(grid[targetY][targetX].getType(), targetX, targetY, j, startX, startY))) return true;
 						}
 						if (j != 8) break;
 					}
@@ -438,7 +438,7 @@ public class Grid {
 		for (int i = 0 ; i < 16; i++) {
 			Piece piece = currentPlayer.selectPiece(i);
 			if (piece != null) {
-				if (!checkCheckmate(piece.type, piece.x, piece.y)) return false;			
+				if (!checkCheckmate(piece.getType(), piece.getXY("x"), piece.getXY("y"))) return false;			
 			}
 		}
 		//if no pieces disprove you're in checkmate, you're in checkmate
@@ -597,7 +597,7 @@ public class Grid {
 			startY = Math.abs(Integer.parseInt(targetPiece.substring(1,2)) - 8);
 	
 			//Check valid piece
-			if (grid[startY][startX] == null || grid[startY][startX].colourCode != currentPlayer.code()) {
+			if (grid[startY][startX] == null || !grid[startY][startX].isPlayer(currentPlayer)) {
 				System.out.println("Sorry, that's not a valid piece.");
 			} else selectPiece = false;
 		}

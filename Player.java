@@ -52,4 +52,10 @@ public class Player {
 		kingX = x;
 		kingY = y;
 	}
+	
+	public void printList() {
+		for (int i = 0; i < 16; i++) {
+			if (activePieces[i] != null) System.out.print(activePieces[i].getType());
+		}
+	}
 }

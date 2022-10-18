@@ -5,19 +5,17 @@ Fix: Simplify the checkCheck method so it works like checkCheckmate
 Reduce number of steps in pawn checkmate checking
 simplify the input checking with ? : if else (Probs also some Null checks?)
 generlise more things to pawnCheck
-run more checkmate checks
+run more checkmate checks 
 -en passant
 -castling
 
 
 
-Bugs:
-**CASTLING DOES NOT UPDATE rook COORDINATES**
-BUG: Pawns can take vertically
-Castling - now working
-Enpassant - broken
-Birthday move - working
- 
+TO CHECK
+PASSED check taking works correctly in terms of moving a piece onto an occupied space - colour check has changed
+PASSED Check the new beTaken method for Piece works
+PASSED check Castling still works, updated selectedPiece.y to startY in the rook movement code
+New CheckType method - Looks to be working
 
 Implement:
 3 Move repetition
