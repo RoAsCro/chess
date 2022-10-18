@@ -1,22 +1,24 @@
-BUG: Pawns can take vertically
+Less urgent:
+Privatise piece variables
 Bug?: two variables named checking, change one of them
 Fix: Simplify the checkCheck method so it works like checkCheckmate
 Reduce number of steps in pawn checkmate checking
 simplify the input checking with ? : if else (Probs also some Null checks?)
-Explore the advantages of making players objects
+generlise more things to pawnCheck
+run more checkmate checks
+-en passant
+-castling
 
-NEED TO REVERSE LEFT AND RIGHT FOR SOME ROOKS
-CASTLING DOES NOT UPDATE rook COORDINATES
-DEPRECATE PAWNCHECK? USE IT MORE?
 
 
-(Truned off checkmate check for now)
-Castling -
+Bugs:
+**CASTLING DOES NOT UPDATE rook COORDINATES**
+BUG: Pawns can take vertically
+Castling - now working
 Enpassant - broken
 Birthday move - working
+ 
 
-
-Checkmate
-Stalemate
+Implement:
 3 Move repetition
 Promotion

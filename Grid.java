@@ -177,8 +177,8 @@ public class Grid {
 		
 		
 		
-		//Checks passed!
 		
+		//Check not castling through check
 		if (castleFlag) {
 			changeCoordinates(startX, startY, targetX + (xDifference / 2), targetY);
 			if (checkCheck()) {
@@ -187,6 +187,7 @@ public class Grid {
 			} else changeCoordinates(targetX + (xDifference / 2), targetY, startX, startY);
 			
 		}
+		//Checks passed!
 		changeCoordinates(startX, startY, targetX, targetY);
 		//if it was an en passant, make sure the pawn is removed
 		Piece passantPawn = null;
@@ -251,11 +252,25 @@ public class Grid {
 		
 		//Move the rook if castling takes place - NOTE: there is no conceivable situation where the rook's movement alone would affect check checking
 		if (castleFlag && !checking) {
-			if (targetX == 2) {
-				changeCoordinates(0, selectedPiece.y, 3, selectedPiece.y);
+			//Castle X - where the rook is to move, Rook X - where the rook in question is located
+			int castleX = targetX - (targetX / 2 - 2), rookX = (targetX - 2) / 4 * 7;
+			System.out.println(castleX);
+			System.out.println(rookX);
+			System.out.println(selectedPiece.y);
+			grid[selectedPiece.y][rookX].x = castleX;
+			changeCoordinates(rookX, selectedPiece.y, castleX, selectedPiece.y);
+			System.out.print("Here");
+			
+			/*if (targetX == 2) {
+				castleRook = grid[0][selectedPiece.y];
+				changeCoordinates(0, selectedPiece.y, castleX, selectedPiece.y);
+				castleRook.x = 3;
 			} else if (targetX == 6) {
-				changeCoordinates(7, selectedPiece.y, 5, selectedPiece.y);
-			}
+				castleRook = grid[7][selectedPiece.y];
+				changeCoordinates(7, selectedPiece.y, castleX, selectedPiece.y);
+				castleRook.x = 3;
+			}*/
+			
 			castleFlag = false;
 		}
 		//
@@ -269,8 +284,7 @@ public class Grid {
 		
 		if (selectedPiece.type.equals("K")) {
 			currentPlayer.moveKing(targetX, targetY);
-		}
-	
+		};
 		grid[targetY][targetX] = selectedPiece;
 		grid[startY][startX] = null;
 	}
