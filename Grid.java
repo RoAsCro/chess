@@ -40,7 +40,7 @@ public class Grid {
 					for (int i = 0; i < 8; i++) {
 			
 						if (j == 1 || j == 6) {
-							//grid[j][i] = new Piece("P", col, i, j, i);
+							grid[j][i] = new Piece("P", col, i, j, i);
 							if (j == 1) {
 								black.addPiece(grid[j][i], i);
 							} else  white.addPiece(grid[j][i], i);
@@ -254,23 +254,8 @@ public class Grid {
 		if (castleFlag && !checking) {
 			//Castle X - where the rook is to move, Rook X - where the rook in question is located
 			int castleX = targetX - (targetX / 2 - 2), rookX = (targetX - 2) / 4 * 7;
-			System.out.println(castleX);
-			System.out.println(rookX);
-			System.out.println(selectedPiece.y);
 			grid[selectedPiece.y][rookX].x = castleX;
-			changeCoordinates(rookX, selectedPiece.y, castleX, selectedPiece.y);
-			System.out.print("Here");
-			
-			/*if (targetX == 2) {
-				castleRook = grid[0][selectedPiece.y];
-				changeCoordinates(0, selectedPiece.y, castleX, selectedPiece.y);
-				castleRook.x = 3;
-			} else if (targetX == 6) {
-				castleRook = grid[7][selectedPiece.y];
-				changeCoordinates(7, selectedPiece.y, castleX, selectedPiece.y);
-				castleRook.x = 3;
-			}*/
-			
+			changeCoordinates(rookX, selectedPiece.y, castleX, selectedPiece.y);			
 			castleFlag = false;
 		}
 		//
@@ -320,14 +305,12 @@ public class Grid {
 		} else if (angle < 3) {
 	
 			if (pieceType.equals("P")) {
-				if (currentPlayer.code() * 2 - 1 == yDifference) return true; 
+				if (currentPlayer.code() * 2 - 1 == yDifference && targetLocation == null) return true; 
 				else if (startY == currentPlayer.code() * 5 + 1 && Math.abs(yDifference) == 2) {
 					enPassantFlag = true;
 					return true;
 					
-				} else {
-					return false;
-				}
+				} else return false;
 			}
 		
 			else if (pieceType.equals("K")) {
@@ -464,6 +447,7 @@ public class Grid {
 	
 	 boolean checkCheckmate(String type, int startX, int startY) {
 		//checking is a flag to ensure nothing permanant happens during this check.
+		//Note - there is no situation where castling alone would prevent checkmate or stalemate
 		checking = true;
 		int targetX = 0, targetY = 0, startJ = -1, iterMax = 8, directions = 3, yMax = 1;
 		boolean knight = false;
