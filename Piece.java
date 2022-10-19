@@ -1,13 +1,19 @@
-
+/**
+ * Pieces for the Chess game.
+ * Provides methods to access and update the type and coordinates.
+ *
+ */
 public class Piece {
 
 	//colour is represented by the letter, colourCode is 0 or 1, 0 = black, 1 = white
 	//DEPRECATE COLOUR, not used in the code
-	private String type, colour;
-	private int colourCode;
+	private String type;
+	private int colourCode,
 	//Coordinates are handled through the grid, x, y, and list reference exist purely for the check/stalemate checks to save iterating through the whole grid
-	private int x, y, listReference;
+	x, y, listReference;
 	private Player player;
+	
+	
 
 	public Piece(String inType, int inColour, int inX, int inY, int inListReference, Player inPlayer) {
 		player = inPlayer;
@@ -17,8 +23,6 @@ public class Piece {
 		x = inX;		
 		y = inY;
 		listReference = inListReference;
-		if (inColour == 0) colour = "b";
-		else colour = "w";
 	}
 	
 	public int getColour() {
@@ -42,8 +46,8 @@ public class Piece {
 	}
 	
 	public void setCoordinates(int x, int y) {
-		this.x = x /*< 0 ? x : this.x*/;
-		this.y = y /*< 0 ? y : this.y*/;
+		this.x = x;
+		this.y = y;
 				
 	}
 	

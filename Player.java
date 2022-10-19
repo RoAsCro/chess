@@ -1,12 +1,10 @@
 
 public class Player {
-	private String playerName;
 	private int playerCode, kingX, kingY;
 	private Piece[] activePieces = new Piece[16];
 	private boolean kingCanCastle = true, rightRookCanCastle = true, leftRookCanCastle = true;
 	
 	public Player(String name, int code, int x, int y) {
-		playerName = name;
 		playerCode = code;
 		kingX = x;
 		kingY = y;
