@@ -4,6 +4,7 @@ public class Grid {
 	Player[] players = {black, white};
 	Piece[][] grid = new Piece[8][8];
 	Player currentPlayer = players[0];
+	
 	//Lists of untaken pieces
 	//Where the king currently is - might be redundant with the lists
 	int 
@@ -47,7 +48,7 @@ public class Grid {
 							} else  white.addPiece(grid[j][i], i);
 							
 			
-						} else if (i == 0 || i == 4 || i == 7 /*|| i == 3|| i == 1*/) {
+						} else /*if (i == 0 || i == 4 || i == 7 || i == 3|| i == 1)*/ {
 							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8, col == 0 ? black : white);
 							if (j == 0) {
 								black.addPiece(grid[j][i], i+8);
@@ -63,6 +64,7 @@ public class Grid {
 			
 			//Loop while playing
 			while (go) {
+				if (encodeState2()) System.out.println("Threefold repetition");
 				currentPlayer.printList();
 				printGrid();
 				currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
@@ -213,6 +215,8 @@ public class Grid {
 			selectedPiece.setCoordinates(targetX, targetY);
 			if (targetLocation != null) {
 				targetLocation.beTaken();
+				currentPlayer.clearStates();
+				players[Math.abs(currentPlayer.code()-1)].clearStates();
 			}
 			if (enPassantTake) {
 				passantPawn.beTaken();
@@ -242,6 +246,8 @@ public class Grid {
 						break;
 					}
 				}
+				currentPlayer.clearStates();
+				players[Math.abs(currentPlayer.code()-1)].clearStates();
 			}
 			
 			//Make it impossible to castle after moving the king
@@ -266,7 +272,6 @@ public class Grid {
 			}
 		}
 		enPassantTake = false;
-			
 		return true;
 	}
 	
@@ -700,4 +705,119 @@ public class Grid {
 		}
 		return true;
 	}
+	 
+	public boolean encodeState() {
+		double state = 0, power = 0;
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				Piece piece = grid[i][j];
+				if (piece != null) {
+					double player = piece.isPlayer(currentPlayer) ? 0 : 6, magnitude = Math.pow(13, power);
+					switch(piece.getType()) {
+					case "P":
+						state += (1 + player) * magnitude;
+						break;
+					
+					case "R":
+						state += (2 + player) * magnitude;
+						break;
+						
+					case "N":
+						state += (3 + player) * magnitude;
+						break;
+						
+					case "B":
+						state += (4 + player) * magnitude;
+						break;
+						
+					case "Q":
+						state += (5 + player) * magnitude;
+						break;
+					
+					case "K":
+						state += (6 + player) * magnitude;
+						break;
+					
+					}
+				
+				
+				}
+				power++;
+				
+			}
+		}
+		if (enPassantX != -1) {
+			state += 0.1;
+		}
+		if (players[Math.abs(currentPlayer.code() - 1)].canCastle(2)) {
+			state += 0.01;
+		}
+		if (players[Math.abs(currentPlayer.code() - 1)].canCastle(-2)) {
+			state += 0.001;
+		}
+		if (currentPlayer.canCastle(2)) {
+			state += 0.0001;
+		}
+		if (currentPlayer.canCastle(-2)) {
+			state += 0.00001;
+		}
+		if (currentPlayer.threefoldRepetitionCheck(state)) return true;
+		return false;
+	}
+	
+	public boolean encodeState2() {
+		String state = "";
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				Piece piece = grid[i][j];
+				if (piece != null) {
+					//double player = piece.isPlayer(currentPlayer) ? 0 : 6, magnitude = Math.pow(13, power);
+					String player = piece.isPlayer(currentPlayer) ? "Y" : "N";
+					state = state + piece.getType() + player;
+					/*switch(piece.getType()) {
+					case "P":
+						state += (1 + player) * magnitude;
+						break;
+					
+					case "R":
+						state += (2 + player) * magnitude;
+						break;
+						
+					case "N":
+						state += (3 + player) * magnitude;
+						break;
+						
+					case "B":
+						state += (4 + player) * magnitude;
+						break;
+						
+					case "Q":
+						state += (5 + player) * magnitude;
+						break;
+					
+					case "K":
+						state += (6 + player) * magnitude;
+						break;
+					
+					}*/
+				
+				
+				} else state += "XX";
+				
+			}
+		}
+		if (enPassantX != -1) state += "Y";
+		else state += "N";
+		if (players[Math.abs(currentPlayer.code() - 1)].canCastle(2)) state += "Y";
+		else state += "N";
+		if (players[Math.abs(currentPlayer.code() - 1)].canCastle(-2)) state += "Y";
+		else state += "N";
+		if (currentPlayer.canCastle(2)) state += "Y";
+		else state += "N";
+		if (currentPlayer.canCastle(-2)) state += "Y";
+		else state += "N";
+		if (currentPlayer.threefoldRepetitionCheck2(state)) return true;
+		return false;
+	}
+	
 }

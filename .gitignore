@@ -1,3 +1,7 @@
 /Piece.class
 /Grid.class
 /Player.class
+/State.class
+/StateManager.class
+/StateTwo.class
+/StateManagerTwo.class

@@ -17,7 +17,7 @@ public class Piece {
 
 	public Piece(String inType, int inColour, int inX, int inY, int inListReference, Player inPlayer) {
 		player = inPlayer;
-		System.out.println(player.code());
+		//System.out.println(player.code());
 		type = inType;
 		colourCode = inColour;
 		x = inX;		
