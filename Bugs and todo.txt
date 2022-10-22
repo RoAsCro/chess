@@ -5,14 +5,10 @@ run more checkmate checks
 	-en passant
 	-castling
 
-
-
-TO CHECK
-PASSED check taking works correctly in terms of moving a piece onto an occupied space - colour check has changed
-PASSED Check the new beTaken method for Piece works
-PASSED check Castling still works, updated selectedPiece.y to startY in the rook movement code
-New CheckType method - Looks to be working
-
 Implement:
-3 Move repetition
-Promotion
+3 Move repetition finish
+	-declare intention
+	-declare has occured
+Resignation
+Insufficient material
+Draw

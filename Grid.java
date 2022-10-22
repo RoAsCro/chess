@@ -7,13 +7,13 @@ public class Grid {
 	
 	//Lists of untaken pieces
 	//Where the king currently is - might be redundant with the lists
-	int 
+	int 	fiftyMoveRule,
 			//Where an en passant is happening - (-1,-1) is nowhere
 			enPassantX = -1, enPassantY = -1;
 	//Flags for if an en passant happened last turn, if something needs to be removed if the en passant is successful
 	boolean enPassantFlag, enPassantTake, 
 			//Whether a castle is attempting to take place, whether the game is checking for checkmate and not making real moves
-			castleFlag, checking,
+			castleFlag, checking, threefoldFlag,
 			go = true;
 	
 	public static void main(String[] args) {
@@ -27,68 +27,65 @@ public class Grid {
 		
 	
 	void run() {
-			//Initialise the two players
+	
+		//Initialise the grid
+		String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"};
 		
-			//Initialise the grid
-			String[] orderOne = {"R", "N", "B", "Q", "K", "B", "N", "R"};
-			//String[] orderOne = {"R", "N", "N", "N", "K", "N", "N", "R"}
-			
-			for (int j = 0; j < 8; j++) {
-				int col = 0;
-				if (j > 5) col = 1;
-				if (j < 2 || j > 5) {
-					for (int i = 0; i < 8; i++) {
-			
-						if (j == 1 || j == 6) {
-							grid[j][i] = new Piece("P", col, i, j, i, col == 0 ? black : white);
-							
-							//addSelf method maybe?
-							if (j == 1) {
-								black.addPiece(grid[j][i], i);
-							} else  white.addPiece(grid[j][i], i);
-							
-			
-						} else /*if (i == 0 || i == 4 || i == 7 || i == 3|| i == 1)*/ {
-							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8, col == 0 ? black : white);
-							if (j == 0) {
-								black.addPiece(grid[j][i], i+8);
-							} else  white.addPiece(grid[j][i], i+8);
-			
-						}
-			
+		for (int j = 0; j < 8; j++) {
+			int col = 0;
+			if (j > 5) col = 1;
+			if (j < 2 || j > 5) {
+				for (int i = 0; i < 8; i++) {
+		
+					if ((j == 1 || j == 6)) {
+						grid[j][i] = new Piece("P", col, i, j, i, col == 0 ? black : white);
+						
+						//addSelf method maybe?
+						if (j == 1) {
+							black.addPiece(grid[j][i], i);
+						} else  white.addPiece(grid[j][i], i);
+						
+		
+					} else /*if (i == 0 || i == 4 || i == 7 || i == 3 || i == 1)*/ {
+						grid[j][i] = new Piece(orderOne[i], col, i, j, i+8, col == 0 ? black : white);
+						if (j == 0) {
+							black.addPiece(grid[j][i], i+8);
+						} else  white.addPiece(grid[j][i], i+8);
+		
 					}
+		
 				}
 			}
+		}
+		
+		
+		
+		//Loop while playing
+		while (go) {
+
+			//Allow for draws by threefold repetition
+			if (encodeState2()) threefoldFlag = true;
 			
+			//Print the grid
+			printGrid();
 			
+			//Change active player
+			currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
 			
-			//Loop while playing
-			while (go) {
-				if (encodeState2()) System.out.println("Threefold repetition");
-				currentPlayer.printList();
-				printGrid();
-				currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
-				if (checkCheckmateIter()) {
-					if (checkCheck()) System.out.println("Chcekmate! Game Over!");
-					else System.out.println("Stalemate! Game Over!");
-					go = false;
-					break;	
-				}
-				/*currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
-				if (checkCheckmateIter()) {
-					System.out.println("Stalemate! Game Over!");
-					go = false;
-					break;
-				}*/
-				//System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
-				//currentPlayer = players[Math.abs(currentPlayer.code() - 1)];
-				//System.out.println("Player " + currentPlayer + " is in check? " + checkCheck());
-				//Piece selection formatted xy - 11, 14 etc.	
-				boolean loopDecision = true;
-				while (loopDecision) {
-					if (decideMove()) loopDecision = false;
-				 }
+			//Check for check or stalemate
+			if (checkCheckmateIter()) {
+				if (checkCheck()) System.out.println("Checkmate! Game Over!");
+				else System.out.println("Stalemate! Game Over!");
+				go = false;
+				break;	
 			}
+			
+			//Loop the input
+			boolean loopDecision = true;
+			while (loopDecision) {
+				if (decideMove()) loopDecision = false;
+			 }
+		}
 	}
 	
 	void printGrid() {
@@ -171,10 +168,7 @@ public class Grid {
 			}
 			
 		}
-		
-		
-		
-		
+				
 		//Check not castling through check
 		if (castleFlag) {
 			changeCoordinates(startX, startY, targetX + (xDifference / 2), targetY);
@@ -184,6 +178,7 @@ public class Grid {
 			} else changeCoordinates(targetX + (xDifference / 2), targetY, startX, startY);
 			
 		}
+		
 		//Checks passed!
 		changeCoordinates(startX, startY, targetX, targetY);
 		//if it was an en passant, make sure the pawn is removed
@@ -212,14 +207,20 @@ public class Grid {
 		//remove pieces from the list of active pieces
 		else {
 			//Set the moving piece's internal coordinates and remove the taken piece from the list of active pieces, then do the same for an en passant-ed piece
+			fiftyMoveRule++;
 			selectedPiece.setCoordinates(targetX, targetY);
 			if (targetLocation != null) {
 				targetLocation.beTaken();
+				fiftyMoveRule = 0;
 				currentPlayer.clearStates();
 				players[Math.abs(currentPlayer.code()-1)].clearStates();
 			}
 			if (enPassantTake) {
 				passantPawn.beTaken();
+				fiftyMoveRule = 0;
+				currentPlayer.clearStates();
+				players[Math.abs(currentPlayer.code()-1)].clearStates();
+				
 			}
 		
 			//Allow for en passant next move
@@ -232,22 +233,25 @@ public class Grid {
 				enPassantY = -1;
 			}
 			
-			if (selectedPiece.checkType("P") && targetY == Math.abs(currentPlayer.code() - 1) * 7) {
-				while (1 == 1) {
-					System.out.println("Select a piece to promote to:\nR = Rook\nB = Bishop\nN = Knight\nQ = Queen");
-					String input = System.console().readLine();
-					System.out.println(input);
-					System.out.println(input.length());
-					if (input.length() != 1 || (!input.equals("R") && !input.equals("B") && !input.equals("N") && !input.equals("Q"))) {
-						System.out.println("Sorry, that's not a valid input");
-						continue;
-					} else {
-						selectedPiece.promote(input);
-						break;
+			if (selectedPiece.checkType("P")) { 
+				fiftyMoveRule = 0;
+				if (targetY == Math.abs(currentPlayer.code() - 1) * 7) {
+					while (1 == 1) {
+						System.out.println("Select a piece to promote to:\nR = Rook\nB = Bishop\nN = Knight\nQ = Queen");
+						String input = System.console().readLine();
+						System.out.println(input);
+						System.out.println(input.length());
+						if (input.length() != 1 || (!input.equals("R") && !input.equals("B") && !input.equals("N") && !input.equals("Q"))) {
+							System.out.println("Sorry, that's not a valid input");
+							continue;
+						} else {
+							selectedPiece.promote(input);
+							break;
+						}
 					}
+					currentPlayer.clearStates();
+					players[Math.abs(currentPlayer.code()-1)].clearStates();
 				}
-				currentPlayer.clearStates();
-				players[Math.abs(currentPlayer.code()-1)].clearStates();
 			}
 			
 			//Make it impossible to castle after moving the king
@@ -358,96 +362,6 @@ public class Grid {
 		
 		if (!iterateDirection(-1, 1, 3, 8, startX, startY, false, "Check")) return true;
 		return false;
-		
-		/*
-		for (int j = 0; checking; j++){
-			for (int i = 1; ; i++) {
-				int targetY = startY + i * testVertical, targetX = startX + (i * testHorizontal);
-				if (j == 8) {
-					switch(i) {
-						case 1:
-							targetX = startX + 1;
-							targetY = startY + 2;
-							break;
-						case 2:
-							targetX = startX + 1;
-							targetY = startY - 2;
-							break;
-						case 3:
-							targetX = startX - 1;
-							targetY = startY - 2;
-							break;
-						case 4:
-							targetX = startX - 1;
-							targetY = startY + 2;
-							break;
-						case 5:
-							targetX = startX - 2;
-							targetY = startY - 1;
-							break;
-						case 6:
-							targetX = startX - 2;
-							targetY = startY + 1;
-							break;
-						case 7:
-							targetX = startX + 2;
-							targetY = startY + 1;
-							break;
-						case 8:
-							targetX = startX + 2;
-							targetY = startY - 1;
-							break;
-					}
-				}
-				if (targetY > -1 && targetY < 8 && targetX > -1 && targetX < 8) {
-					if (grid[targetY][targetX] != null) {
-						
-						if (!(grid[targetY][targetX].isPlayer(currentPlayer))) {
-							if ((threatCheck(grid[targetY][targetX].getType(), targetX, targetY, j, startX, startY))) return true;
-						}
-						if (j != 8) break;
-					}
-				} else if (j != 8) {
-					break;
-				}
-				if (j == 8 && i == 8) break;
-				
-			}
-			switch(j) {
-				case 0:
-					testHorizontal = -1;
-					break;
-				case 1:
-					testHorizontal = 0;
-					testVertical = 1;
-					break;
-				case 2:
-					testVertical = -1;
-					break;
-				case 3:
-					testVertical = 1;
-					testHorizontal = 1;
-					break;
-				case 4:
-					testVertical = -1;
-					testHorizontal = -1;
-					break;
-				case 5:
-					testVertical = 1;
-					testHorizontal = -1;
-					break;
-				case 6:
-					testVertical = -1;
-					testHorizontal = 1;
-					break;
-				case 7:
-					break;
-				case 8:
-					checking = false;
-					break;
-			}
-		}
-		return false;*/
 	}
 	
 	
@@ -497,54 +411,8 @@ public class Grid {
 		}
 		if (iterateDirection(startJ, yMax, directions, iterMax, startX, startY, knight, "Checkmate")) return true;
 		return false;
-		/*
-		if (!knight) {		
-			//Go through every possible move a piece might make, going through that piece's eligible directions
-			//i and j are essentially functions of x and y, (i= 1, j= 1) meaning x=y, (-1,1) meaning -x = y, but direction from the origin matters here
-			for (int i = -1; i <= 1; i++) {
-				for (int j = startJ; j <= yMax; j++) {
-					//absolute values of i + j = 2 means diagonal, = 1 means horizontal. 3 Just indicates every direction.
-					//The below skips over directions the piece can't move in
-					if ((directions != 3 && Math.abs(i) + Math.abs(j) != directions) || Math.abs(i) + Math.abs(j) == 0) continue;
-					//Finally k is the direction
-					for (int k = 1; k < iterMax; k++) {
-						targetX = startX - k * i;
-						targetY = startY - k * j;
-						//System.out.println("TargetX = " + targetX + " TargetY + " + targetY);
-						if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) break;
-						
-						//If a piece has a spot they can move to without it resulting in check, end the the checkmate iter returning false
-						if (movePiece(startX, startY, targetX, targetY)) {
-							checking = false;
-							return false;
-						}
-						//If a piece is encountered, stop looking in that direction
-						if (grid[targetY][targetX] != null) break;
-						
-					}
-					
-				}
-			}
-		//Knights have their own special rules
-		} else {
-			for (int i = -2; i < 3; i++) {
-				if (i == 0) continue;
-				for (int j = 0; j <= 1; j++) {
-					targetX = startX - i;
-					targetY = (j == 0 ? -1 : +1) * (startY - (Math.abs(i) < 2 ? i * 2 : i / 2));
-					System.out.println( "X = " + targetX + " Y = " + targetY);
-					if (targetX < 0 || targetX > 7 || targetY < 0 || targetY > 7) continue;
-					if (movePiece(startX, startY, targetX, targetY)) {
-						checking = false;
-						return false;
-					}
-				}
-			}
-		}
-		checking = false;
-		//If return true, continue the checkCheckmateIter
-		return true;*/
 	}
+	 
 	//Carries out a check on every space in the direction specified to the degree specified - Check mode will do every direction + knight directions for the king, Checkmate mode will check every legal direction for a piece
 	 boolean iterateDirection(int startJ, int yMax, int directions, int iterMax, int startX, int startY, boolean knight, String mode) {
 		 int targetX, targetY;
@@ -669,7 +537,18 @@ public class Grid {
 			System.out.print("Select a piece: ");
 			String targetPiece = System.console().readLine();
 			System.out.println();
-			if (targetPiece.length() != 2 || !Character.isDigit(targetPiece.charAt(0)) || !Character.isDigit(targetPiece.charAt(1))) {
+			if (targetPiece.equals("DRAW")) {
+				if (threefoldFlag) {
+					System.out.println("Draw by threefold repetition!");
+					go = false;
+				}
+				if (fiftyMoveRule >= 50) {
+					System.out.println("Draw by fifty move rule!");
+					go = false;
+				}
+				continue;
+			}
+			else if (targetPiece.length() != 2 || !Character.isDigit(targetPiece.charAt(0)) || !Character.isDigit(targetPiece.charAt(1))) {
 				System.out.println("Sorry, that's not a valid input.");
 				continue;
 			}
@@ -706,7 +585,7 @@ public class Grid {
 		return true;
 	}
 	 
-	public boolean encodeState() {
+	/*public boolean encodeState() {
 		double state = 0, power = 0;
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
@@ -763,7 +642,7 @@ public class Grid {
 		}
 		if (currentPlayer.threefoldRepetitionCheck(state)) return true;
 		return false;
-	}
+	}*/
 	
 	public boolean encodeState2() {
 		String state = "";
@@ -774,36 +653,7 @@ public class Grid {
 					//double player = piece.isPlayer(currentPlayer) ? 0 : 6, magnitude = Math.pow(13, power);
 					String player = piece.isPlayer(currentPlayer) ? "Y" : "N";
 					state = state + piece.getType() + player;
-					/*switch(piece.getType()) {
-					case "P":
-						state += (1 + player) * magnitude;
-						break;
-					
-					case "R":
-						state += (2 + player) * magnitude;
-						break;
-						
-					case "N":
-						state += (3 + player) * magnitude;
-						break;
-						
-					case "B":
-						state += (4 + player) * magnitude;
-						break;
-						
-					case "Q":
-						state += (5 + player) * magnitude;
-						break;
-					
-					case "K":
-						state += (6 + player) * magnitude;
-						break;
-					
-					}*/
-				
-				
 				} else state += "XX";
-				
 			}
 		}
 		if (enPassantX != -1) state += "Y";
