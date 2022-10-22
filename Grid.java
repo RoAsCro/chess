@@ -47,7 +47,7 @@ public class Grid {
 							} else  white.addPiece(grid[j][i], i);
 							
 			
-						} else if (i == 0 || i == 4 || i == 7 || i == 3|| i == 1) {
+						} else if (i == 0 || i == 4 || i == 7 /*|| i == 3|| i == 1*/) {
 							grid[j][i] = new Piece(orderOne[i], col, i, j, i+8, col == 0 ? black : white);
 							if (j == 0) {
 								black.addPiece(grid[j][i], i+8);
@@ -199,7 +199,7 @@ public class Grid {
 		}
 		//BELOW MUST ONLY TAKE PLACE IF A MOVE IS SUCCESSFULLY MADE
 		
-		
+		//If this is during a checkmate check, put the board back to how it was. If not, finishing touches on the move
 		if (checking) {
 			//System.out.println("Confirmed");
 			changeCoordinates(targetX, targetY, startX, startY);
@@ -207,8 +207,9 @@ public class Grid {
 			if (enPassantTake) grid[targetY + yDifference][targetX] = passantPawn;
 			}
 		
-		//remove pieces from the list of untaken pieces
-		if (!checking) {
+		//remove pieces from the list of active pieces
+		else {
+			//Set the moving piece's internal coordinates and remove the taken piece from the list of active pieces, then do the same for an en passant-ed piece
 			selectedPiece.setCoordinates(targetX, targetY);
 			if (targetLocation != null) {
 				targetLocation.beTaken();
@@ -216,43 +217,54 @@ public class Grid {
 			if (enPassantTake) {
 				passantPawn.beTaken();
 			}
-				
+		
+			//Allow for en passant next move
+			if (enPassantFlag) {
+				enPassantX = targetX;
+				enPassantY = targetY + (yDifference / 2);
+				enPassantFlag = false;
+			} else if (!checking) {
+				enPassantX = -1;
+				enPassantY = -1;
+			}
 			
-		}
-		//Allow for en passant next move
-		
-		
-		if (enPassantFlag && !checking) {
-			enPassantX = targetX;
-			enPassantY = targetY + (yDifference / 2);
-			enPassantFlag = false;
-		} else if (!checking) {
-			enPassantX = -1;
-			enPassantY = -1;
-		}
-		//Make it impossible to castle after moving the king
-		if (selectedPiece.checkType("K") && !checking) {
-			currentPlayer.cannotCastle("K", "");
-		}
-		//Make it impossible to castle with a rook after moving it
-		if (selectedPiece.checkType("R") && !checking) {
-			//repetition below
-			if (startX == 0 && (startY == 0 || startY == 7)) {
-				currentPlayer.cannotCastle("R", "left");
-			} else if (startX == 7 && (startX == 0 || startY == 7)){
-				currentPlayer.cannotCastle("R", "right");
+			if (selectedPiece.checkType("P") && targetY == Math.abs(currentPlayer.code() - 1) * 7) {
+				while (1 == 1) {
+					System.out.println("Select a piece to promote to:\nR = Rook\nB = Bishop\nN = Knight\nQ = Queen");
+					String input = System.console().readLine();
+					System.out.println(input);
+					System.out.println(input.length());
+					if (input.length() != 1 || (!input.equals("R") && !input.equals("B") && !input.equals("N") && !input.equals("Q"))) {
+						System.out.println("Sorry, that's not a valid input");
+						continue;
+					} else {
+						selectedPiece.promote(input);
+						break;
+					}
+				}
+			}
+			
+			//Make it impossible to castle after moving the king
+			if (selectedPiece.checkType("K")) {
+				currentPlayer.cannotCastle("K", "");
+			}
+			//Make it impossible to castle with a rook after moving it
+			else if (selectedPiece.checkType("R")) {
+				
+				if (startY == currentPlayer.code() * 7 && startX == 0 || startY == 7) {
+					currentPlayer.cannotCastle("R", startX == 0 ? "left" : startX == 7 ? "right" : "");
+				}
+			}
+			
+			//Move the rook if castling takes place - NOTE: there is no conceivable situation where the rook's movement alone would affect check checking
+			if (castleFlag) {
+				//Castle X - where the rook is to move, Rook X - where the rook in question is located
+				int castleX = targetX - (targetX / 2 - 2), rookX = (targetX - 2) / 4 * 7;
+				grid[startY][rookX].setCoordinates(castleX, startY);
+				changeCoordinates(rookX, startY, castleX, startY);			
+				castleFlag = false;
 			}
 		}
-		
-		//Move the rook if castling takes place - NOTE: there is no conceivable situation where the rook's movement alone would affect check checking
-		if (castleFlag && !checking) {
-			//Castle X - where the rook is to move, Rook X - where the rook in question is located
-			int castleX = targetX - (targetX / 2 - 2), rookX = (targetX - 2) / 4 * 7;
-			grid[startY][rookX].setCoordinates(castleX, startY);
-			changeCoordinates(rookX, startY, castleX, startY);			
-			castleFlag = false;
-		}
-		//
 		enPassantTake = false;
 			
 		return true;
@@ -528,7 +540,7 @@ public class Grid {
 		//If return true, continue the checkCheckmateIter
 		return true;*/
 	}
-	//Carries out a check on every space in the direction specified to the degree specified - Check mode will do every direction + knight directions for the king, Checkmate mode will check every possible direction for a piece
+	//Carries out a check on every space in the direction specified to the degree specified - Check mode will do every direction + knight directions for the king, Checkmate mode will check every legal direction for a piece
 	 boolean iterateDirection(int startJ, int yMax, int directions, int iterMax, int startX, int startY, boolean knight, String mode) {
 		 int targetX, targetY;
 		 if (!knight) {

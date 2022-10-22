@@ -8,10 +8,10 @@ public class Piece {
 	//colour is represented by the letter, colourCode is 0 or 1, 0 = black, 1 = white
 	//DEPRECATE COLOUR, not used in the code
 	private String type;
-	private int colourCode,
+	private final int colourCode;
 	//Coordinates are handled through the grid, x, y, and list reference exist purely for the check/stalemate checks to save iterating through the whole grid
-	x, y, listReference;
-	private Player player;
+	private int x, y, listReference;
+	private final Player player;
 	
 	
 
@@ -62,5 +62,9 @@ public class Piece {
 	
 	public void beTaken() {
 		player.removePiece(listReference);
+	}
+	
+	public void promote(String type) {
+		this.type = type;
 	}
 }
