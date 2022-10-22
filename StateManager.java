@@ -20,7 +20,7 @@ public class StateManager {
 			
 			printStates();
 		}
-	}*/
+	}
 	
 	public void addState(State state) {
 		if (firstState == null) firstState = state;
@@ -31,7 +31,7 @@ public class StateManager {
 			}
 			current.setNextState(state);
 		}
-	}
+	}*/
 	
 	public boolean threefoldRepetitionCheck(State state) {
 		if (firstState == null) firstState = state;

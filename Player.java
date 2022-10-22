@@ -67,7 +67,6 @@ public class Player {
 	}
 	
 	public boolean threefoldRepetitionCheck2(String input) {
-		System.out.println(input);
 		StateTwo state = new StateTwo(input);
 		if (managerTwo.threefoldRepetitionCheck(state)) return true;
 		return false;
