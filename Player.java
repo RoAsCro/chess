@@ -3,7 +3,7 @@ public class Player {
 	private int playerCode, kingX, kingY;
 	private Piece[] activePieces = new Piece[16];
 	private boolean kingCanCastle = true, rightRookCanCastle = true, leftRookCanCastle = true;
-	private StateManager manager = new StateManager();
+	//private StateManager manager = new StateManager();
 	private StateManagerTwo managerTwo = new StateManagerTwo();
 	
 	public Player(String name, int code, int x, int y) {
@@ -23,6 +23,7 @@ public class Player {
 		if (kingCanCastle) {
 			if (xDifference == 2 && leftRookCanCastle) return true;
 			else if (xDifference == -2 && rightRookCanCastle) return true;
+			else if (xDifference == 0 && kingCanCastle) return true;
 			else return false;
 		} else return false;
 	}
@@ -59,12 +60,11 @@ public class Player {
 		}
 	}
 	
-	public boolean threefoldRepetitionCheck(double input) {
-		System.out.println(input);
+	/*public boolean threefoldRepetitionCheck(double input) {
 		State state = new State(input);
 		if (manager.threefoldRepetitionCheck(state)) return true;
 		return false;
-	}
+	}*/
 	
 	public boolean threefoldRepetitionCheck2(String input) {
 		StateTwo state = new StateTwo(input);

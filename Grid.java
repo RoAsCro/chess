@@ -1,5 +1,4 @@
 public class Grid {
-	
 	Player white = new Player("White", 1, 4, 7), black = new Player("Black", 0, 4, 0);
 	//Player[] players = {black, white};
 	Piece[][] grid = new Piece[8][8];
@@ -192,7 +191,6 @@ public class Grid {
 		
 		//If this is during a checkmate check, put the board back to how it was. If not, finishing touches on the move
 		if (checking) {
-			//System.out.println("Confirmed");
 			changeCoordinates(targetX, targetY, startX, startY);
 			grid[targetY][targetX] = targetLocation;
 			if (enPassantTake) grid[targetY + yDifference][targetX] = passantPawn;
@@ -229,6 +227,8 @@ public class Grid {
 			
 			if (selectedPiece.checkType("P")) { 
 				fiftyMoveRule = 0;
+				currentPlayer.clearStates();
+				opponent.clearStates();
 				if (targetY == Math.abs(currentPlayer.code() - 1) * 7) {
 					while (1 == 1) {
 						System.out.println("Select a piece to promote to:\nR = Rook\nB = Bishop\nN = Knight\nQ = Queen");
@@ -453,7 +453,6 @@ public class Grid {
 								return false;
 							}
 						} else if (mode.equals("Check")) {
-							//if (!checking) System.out.println( "X = " + targetX + " Y = " + targetY);
 							Piece threat = grid[targetY][targetX];
 							if (threat != null && threatCheck(grid[targetY][targetX].getType(), targetX, targetY, 4, startX, startY)) return false;
 						}
@@ -466,7 +465,6 @@ public class Grid {
 	 
 	 boolean threatCheck(String threatType, int threatX, int threatY, int threatAngle, int kingX, int kingY) {
 		boolean kingThreat = threatType.equals("K") && Math.abs(kingY - threatY) <= 1 && Math.abs(kingX - threatX) <= 1 ? true : false;
-		//System.out.println("ANGLE = " + threatAngle + " THREAT X = " + threatX + " Y = " + threatY + " type = " + threatType);
 		if (grid[threatY][threatX].isPlayer(currentPlayer)) return false;
 		if ((threatAngle < 2) && (threatType.equals("R") || kingThreat || threatType.equals("Q"))) {
 			return true;
@@ -484,7 +482,7 @@ public class Grid {
 	}
 	
 	//Used to check all possible moves to check the collision function is working properly
-	 void testMove(int startX, int startY) {
+/*	 void testMove(int startX, int startY) {
 	
 		Piece selectedPiece = grid[startY][startX];
 		//Test the Y axis
@@ -519,7 +517,7 @@ public class Grid {
 				}
 			}
 		}
-	}
+	}*/
 	
 	
 	 boolean decideMove() {
@@ -560,10 +558,7 @@ public class Grid {
 			String targetLocation = System.console().readLine();
 			System.out.println();
 			// TEST will return a list of invalid moves in the horizontal, vertical, and diagonal directions. BACK will return to selec a piece.
-			if (targetLocation.equals("TEST")) {
-				testMove(startX, startY);
-				continue;
-			} else if (targetLocation.equals("BACK")) {
+			if (targetLocation.equals("BACK")) {
 				return false;
 			} else if (targetLocation.length() != 2 || !Character.isDigit(targetLocation.charAt(0)) || !Character.isDigit(targetLocation.charAt(1))) {
 				System.out.println("Sorry, that's not a valid input.");
@@ -640,27 +635,95 @@ public class Grid {
 	
 	public boolean encodeState2() {
 		String state = "";
-		for (int i = 0; i < 8; i++) {
+		String stateTwo = "";
+		/*for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
 				Piece piece = grid[i][j];
 				if (piece != null) {
-					//double player = piece.isPlayer(currentPlayer) ? 0 : 6, magnitude = Math.pow(13, power);
 					String player = piece.isPlayer(currentPlayer) ? "Y" : "N";
 					state = state + piece.getType() + player;
 				} else state += "XX";
 			}
+		}*/
+		for (int i = 8; i <= 12; i++) {
+			
+			int first = currentPlayer.selectPiece(i).getXY("y") * 8 + currentPlayer.selectPiece(i).getXY("x");
+			if (i <= 10) {
+				int second = currentPlayer.selectPiece(23 - i).getXY("y") * 8 + currentPlayer.selectPiece(23 - i).getXY("x");
+				if (first > second) {
+					int third = second;
+					second = first;
+					first = third;
+				}
+				
+				stateTwo += first < 10 ? "0" + first : first;
+				//count++;
+				stateTwo += second < 10 ? "0" + second : second;
+				//count++;
+			}
+			else {
+				stateTwo += first < 10 ? "0" + first : first;
+				//count++;
+			}
 		}
-		if (enPassantX != -1) state += "Y";
+		
+		for (int i = 8; i <= 12; i++) {
+			
+			int first = opponent.selectPiece(i).getXY("y") * 8 + opponent.selectPiece(i).getXY("x");
+			if (i <= 10) {
+				int second = opponent.selectPiece(23 - i).getXY("y") * 8 + opponent.selectPiece(23 - i).getXY("x");
+				if (first > second) {
+					int third = second;
+					second = first;
+					first = third;
+				}
+				
+				stateTwo += first < 10 ? "0" + first : first;
+				//count++;
+				stateTwo += second < 10 ? "0" + second : second;
+				//count++;
+			}
+			else {
+				stateTwo += first < 10 ? "0" + first : first;
+				//count++;
+			}
+		}
+		if (enPassantX != -1) {
+			state += "Y";
+			stateTwo += "E";
+		}
 		else state += "N";
-		if (opponent.canCastle(2)) state += "Y";
+		if (opponent.canCastle(0)) {
+			state += "Y";
+			stateTwo += "Y";
+		}
 		else state += "N";
-		if (opponent.canCastle(-2)) state += "Y";
+		if (opponent.canCastle(2)) {
+			state += "Y";
+			stateTwo += "Y";
+		}
 		else state += "N";
-		if (currentPlayer.canCastle(2)) state += "Y";
+		if (opponent.canCastle(-2)) {
+			state += "Y";
+			stateTwo += "Y";
+		}
 		else state += "N";
-		if (currentPlayer.canCastle(-2)) state += "Y";
+		if (currentPlayer.canCastle(0)) {
+			state += "Y";
+			stateTwo += "Y";
+		}
 		else state += "N";
-		if (currentPlayer.threefoldRepetitionCheck2(state)) return true;
+		if (currentPlayer.canCastle(2)) {
+			state += "Y";
+			stateTwo += "Y";
+		}
+		else state += "N";
+		if (currentPlayer.canCastle(-2)) {
+			state += "Y";
+			stateTwo += "Y";
+		}
+		else state += "N";
+		if (currentPlayer.threefoldRepetitionCheck2(stateTwo)) return true;
 		return false;
 	}
 	

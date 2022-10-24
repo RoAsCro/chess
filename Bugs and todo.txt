@@ -2,13 +2,8 @@ Less urgent:
 Reduce number of steps in pawn checkmate checking
 generlise more things to pawnCheck
 run more checkmate checks 
-	-en passant
-	-castling
 
 Implement:
-3 Move repetition finish
-	-declare intention
-	-declare has occured
 Resignation
 Insufficient material
 Draw

@@ -34,6 +34,7 @@ public class StateManagerTwo {
 			}
 			current.setNextState(state);
 		}
+		//printStates();
 		return false;
 	}
 	

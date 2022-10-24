@@ -10,14 +10,14 @@ public class Piece {
 	private String type;
 	private final int colourCode;
 	//Coordinates are handled through the grid, x, y, and list reference exist purely for the check/stalemate checks to save iterating through the whole grid
-	private int x, y, listReference;
+	private int x, y;
+	private final int listReference;
 	private final Player player;
 	
 	
 
 	public Piece(String inType, int inColour, int inX, int inY, int inListReference, Player inPlayer) {
 		player = inPlayer;
-		//System.out.println(player.code());
 		type = inType;
 		colourCode = inColour;
 		x = inX;		
